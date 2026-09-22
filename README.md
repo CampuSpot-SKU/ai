@@ -6,7 +6,7 @@
 같은 프로세스 안에서 함수처럼 불러 씀:
 
 ```
-pip install git+https://github.com/<org>/ai.git@main
+pip install git+https://github.com/CampuSpot-SKU/ai.git@main
 ```
 
-자세한 배경은 [../backend/docs/campus-esm-chatbot-spec.md](../backend/docs/campus-esm-chatbot-spec.md) 8장 참고.
+자세한 배경은 [backend 레포의 campus-esm-chatbot-spec.md](https://github.com/CampuSpot-SKU/backend/blob/main/docs/campus-esm-chatbot-spec.md) 8장 참고.
