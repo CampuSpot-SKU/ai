@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "캠퍼스팟 AI 로직 패키지 (의도분류/RAG/우선순위/탐지/예측) — backend가 설치해서 사용"
 requires-python = ">=3.11"
 dependencies = [
-    # google-cloud-aiplatform, pgvector 등 확정되는 대로 추가
+    "google-genai",  # Gemini API (Google AI Studio) 클라이언트 — pgvector 등 나머지는 확정되는 대로 추가
 ]
 
 [tool.ruff]
