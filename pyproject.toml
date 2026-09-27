@@ -21,6 +21,10 @@ dependencies = [
 [tool.setuptools.packages.find]
 include = ["ai*"]
 
+# 프롬프트(.md)도 패키지에 포함 — Docker에서 pip install . 할 때 빠지지 않도록
+[tool.setuptools.package-data]
+ai = ["prompts/*.md"]
+
 [tool.ruff]
 line-length = 100
 

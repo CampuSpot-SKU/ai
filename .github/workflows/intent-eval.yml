@@ -1,0 +1,28 @@
+name: Intent eval (수동 실행)
+
+# 의도 분류 정확도를 실제 Gemini로 측정 — 프롬프트 수정 후 Actions 탭에서 "Run workflow"로 실행.
+# 배포와는 무관, 결과는 실행 화면 Summary에 표로 나옴.
+on:
+  workflow_dispatch:
+
+jobs:
+  eval:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install
+        run: pip install -e .
+
+      - name: Run eval
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/eval_intent.py
