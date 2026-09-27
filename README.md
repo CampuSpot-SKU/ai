@@ -12,4 +12,4 @@ HTTP로 호출한다 (`AI_SERVICE_URL` + `X-Internal-Secret: AI_SERVICE_SECRET` 
 
 로컬에서 패키지만 따로 쓰고 싶으면(예: 노트북에서 실험) `pip install -e .`로 설치 가능.
 
-자세한 배경은 [backend 레포의 campus-esm-chatbot-spec.md](https://github.com/CampuSpot-SKU/backend/blob/main/docs/campus-esm-chatbot-spec.md) 8장 참고.
+자세한 배경은 기준 명세서 8장 참고 (팀 비공개 문서 레포에서 관리, 팀원 전용).
