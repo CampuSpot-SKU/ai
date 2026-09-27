@@ -7,10 +7,15 @@ name = "ai"
 version = "0.1.0"
 description = "캠퍼스팟 AI 로직 패키지 — campuspot-ai 서비스(app/)가 이 패키지를 사용, backend는 HTTP로 호출"
 requires-python = ">=3.11"
+# 의존성은 여기 한 곳에서만 관리 (Dockerfile·CI 모두 이 목록으로 설치).
+# 버전 고정 — 새 버전 출시로 배포가 갑자기 깨지는 것 방지. 올릴 때는 의도적으로 숫자를 바꿀 것.
 dependencies = [
-    "google-genai",  # Gemini API (Google AI Studio) 클라이언트 — pgvector 등 나머지는 확정되는 대로 추가
-    "sqlalchemy",  # ai/db.py — 탐지/예측/공지크롤링의 DB 접근
-    "psycopg2-binary",
+    "fastapi==0.141.1",
+    "uvicorn[standard]==0.54.0",
+    "sqlalchemy==2.1.1",        # ai/db.py — 탐지/예측/공지크롤링의 DB 접근
+    "psycopg2-binary==2.9.13",
+    "google-genai==2.25.0",     # Gemini API (Google AI Studio)
+    "python-dotenv==1.2.3",
 ]
 
 [tool.setuptools.packages.find]
