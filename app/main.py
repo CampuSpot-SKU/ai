@@ -11,6 +11,7 @@ app.include_router(chat.router, prefix="/api/v1")
 app.include_router(cron.router, prefix="/api/v1")
 
 
-@app.get("/healthz")
-def healthz():
+# 주의: Cloud Run은 z로 끝나는 경로(/healthz 등)를 예약해서 외부에서 404가 남 → /health 사용
+@app.get("/health")
+def health() -> dict[str, str]:
     return {"status": "ok"}
