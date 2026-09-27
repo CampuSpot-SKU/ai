@@ -9,6 +9,8 @@ description = "캠퍼스팟 AI 로직 패키지 — campuspot-ai 서비스(app/)
 requires-python = ">=3.11"
 dependencies = [
     "google-genai",  # Gemini API (Google AI Studio) 클라이언트 — pgvector 등 나머지는 확정되는 대로 추가
+    "sqlalchemy",  # ai/db.py — 탐지/예측/공지크롤링의 DB 접근
+    "psycopg2-binary",
 ]
 
 [tool.setuptools.packages.find]
