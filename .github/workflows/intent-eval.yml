@@ -1,9 +1,18 @@
 name: Intent eval (수동 실행)
 
-# 의도 분류 정확도를 실제 Gemini로 측정 — 프롬프트 수정 후 Actions 탭에서 "Run workflow"로 실행.
-# 배포와는 무관, 결과는 실행 화면 Summary에 표로 나옴.
+# 의도 분류 정확도를 실제 Gemini로 측정하고 규칙 기반 비교군과 비교 (명세서 10-1, 10-4 S-7a).
+# Actions 탭 → "Intent eval" → Run workflow → 세트 선택.
+#   holdout: 평가 세트 — 결과보고서·영상용 수치. 이 결과를 보고 프롬프트를 고치지 않음
+#   dev:     개발 세트 — 프롬프트를 고친 뒤 회귀 확인용
+# 배포와는 무관. 결과는 실행 화면 Summary + 아티팩트(intent-eval-result)에 남음.
 on:
   workflow_dispatch:
+    inputs:
+      set:
+        description: "평가할 세트 (holdout = 보고서용, dev = 프롬프트 수정 후 회귀 확인)"
+        type: choice
+        options: [holdout, dev]
+        default: holdout
 
 jobs:
   eval:
@@ -25,4 +34,11 @@ jobs:
       - name: Run eval
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python scripts/eval_intent.py
+        run: python scripts/eval_intent.py --set ${{ inputs.set }} --out intent-eval-result.md
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: intent-eval-result-${{ inputs.set }}
+          path: intent-eval-result.md
+          if-no-files-found: ignore

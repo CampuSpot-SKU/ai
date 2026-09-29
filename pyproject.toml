@@ -30,3 +30,7 @@ line-length = 100
 
 [tool.mypy]
 python_version = "3.11"
+
+# scripts/의 평가 로직(S-7a)을 테스트에서 import할 수 있도록
+[tool.pytest.ini_options]
+pythonpath = ["scripts"]
