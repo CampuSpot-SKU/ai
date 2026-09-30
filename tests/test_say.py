@@ -36,6 +36,14 @@ def test_validate_accepts_polite_speech(polite: str) -> None:
     assert validate(polite, [])
 
 
+def test_validate_rejects_invented_building_floor_room() -> None:
+    base = "어느 건물의 4층 강의실인가요?"
+    assert validate("어느 건물의 4층 강의실인지 알려주시겠어요?", [], base)
+    for invented in ("북악관 4층 강의실이 맞는지 확인해 주시겠어요?", "어느 건물의 3층 강의실인가요?", "301호 강의실인가요?"):
+        with pytest.raises(SayError):
+            validate(invented, [], base)
+
+
 def test_validate_requires_must_include() -> None:
     with pytest.raises(SayError):
         validate("어느 건물이에요?", ["은주1관"])

@@ -78,7 +78,19 @@ def _is_polite(text: str) -> bool:
     return True
 
 
-def validate(text: str, must_include: list[str]) -> str:
+_FACT_RE = re.compile(r"[가-힣0-9]{1,5}관|\d+\s*층|\d+\s*호")
+
+
+def _invented_fact(out: str, base: str) -> str | None:
+    """기본 문장에 없는 건물·층·호수를 Gemini가 지어냈으면 그 표현 (예: 학생이 "북악"이라고만 했는데 "북악관")."""
+    base_compact = re.sub(r"\s+", "", base)
+    for m in _FACT_RE.finditer(out):
+        if re.sub(r"\s+", "", m.group(0)) not in base_compact:
+            return m.group(0)
+    return None
+
+
+def validate(text: str, must_include: list[str], base_text: str = "") -> str:
     """Gemini 결과 검사 — 통과하면 다듬은 문장, 아니면 SayError."""
     out = text.strip().strip('"').strip()
     if not out or len(out) > MAX_LEN:
@@ -87,6 +99,8 @@ def validate(text: str, must_include: list[str]) -> str:
         raise SayError("반말")
     if any(mark in out for mark in ("•", "·", "- ", "위치:", "상황:", "**", "#")):
         raise SayError("목록·라벨 형식")
+    if base_text and (invented := _invented_fact(out, base_text)):
+        raise SayError(f"지어낸 표현: {invented}")
     for needed in must_include:
         if needed not in out:
             raise SayError(f"필수 표현 누락: {needed}")
@@ -111,7 +125,7 @@ def say(req: SayRequest) -> SayResult:
     last: Exception | None = None
     for attempt in (1, 2):
         try:
-            return SayResult(text=validate(_call_gemini(req), req.must_include))
+            return SayResult(text=validate(_call_gemini(req), req.must_include, req.base_text))
         except SayError as e:
             last = e
         except Exception as e:  # noqa: BLE001 — 네트워크/쿼터 등 Gemini 호출 오류 전부
