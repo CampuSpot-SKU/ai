@@ -7,6 +7,7 @@
 """
 import logging
 import os
+import re
 from functools import lru_cache
 from pathlib import Path
 
@@ -62,11 +63,28 @@ def _build_content(req: SayRequest) -> str:
     return "\n".join(lines)
 
 
+_POLITE_END = ("요", "다", "죠")
+_TRAILING = ")]}\"'”’~… "
+
+
+def _is_polite(text: str) -> bool:
+    """모든 문장이 존댓말(…요 / …다 / …죠 / …니까)로 끝나는지. "알려줄 수 있을까?" 같은 반말은 탈락."""
+    for sentence in re.split(r"[.?!\n]+", text):
+        body = sentence.strip().rstrip(_TRAILING)
+        if not body:
+            continue
+        if not (body.endswith(_POLITE_END) or body.endswith("니까")):
+            return False
+    return True
+
+
 def validate(text: str, must_include: list[str]) -> str:
     """Gemini 결과 검사 — 통과하면 다듬은 문장, 아니면 SayError."""
     out = text.strip().strip('"').strip()
     if not out or len(out) > MAX_LEN:
         raise SayError("길이")
+    if not _is_polite(out):
+        raise SayError("반말")
     if any(mark in out for mark in ("•", "·", "- ", "위치:", "상황:", "**", "#")):
         raise SayError("목록·라벨 형식")
     for needed in must_include:

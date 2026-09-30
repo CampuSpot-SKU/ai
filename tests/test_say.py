@@ -19,6 +19,23 @@ def test_validate_rejects_bad_format(bad: str) -> None:
         validate(bad, [])
 
 
+@pytest.mark.parametrize(
+    "banmal",
+    ["그럼 정확한 접수를 위해 어느 건물 몇 층 강의실인지 알려줄 수 있을까?", "어느 건물이야?", "접수할게"],
+)
+def test_validate_rejects_informal_speech(banmal: str) -> None:
+    with pytest.raises(SayError):
+        validate(banmal, [])
+
+
+@pytest.mark.parametrize(
+    "polite",
+    ["어느 건물 몇 층인지 알려주실 수 있을까요?", "알겠어요. 이대로 접수할까요?", "접수를 도와드리겠습니다", "도와드릴까요? (예: 혜인관이에요)"],
+)
+def test_validate_accepts_polite_speech(polite: str) -> None:
+    assert validate(polite, [])
+
+
 def test_validate_requires_must_include() -> None:
     with pytest.raises(SayError):
         validate("어느 건물이에요?", ["은주1관"])
