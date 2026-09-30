@@ -18,11 +18,11 @@ from collections.abc import Sequence
 
 Label = str  # "report" | "inquiry" | "unclear"
 
-# 단어 목록은 개발 세트 34문장에 나온 표현과 그 활용형만 사용 (평가 세트 단어를 넣으면 비교가 불공정해짐)
+# 단어 목록은 개발 세트에 나온 표현과 그 활용형만 사용 (평가 세트 단어를 넣으면 비교가 불공정해짐)
 # 문제 상황 (고장·파손·누수·오염·IT 장애)
 PROBLEM = re.compile(
-    r"고장|부서|새[요고는]|깜빡|냄새|먹었|끊[겨김어기]|막[혔힘히]|나갔|미끄|약한|"
-    r"안\s?(켜|되|돼|들어가)"
+    r"고장|부서|새[요고는]|깜빡|냄새|먹었|끊[겨김어기]|막[혔힘히]|나갔|미끄|약한|곰팡이|고이|추운|없는|"
+    r"안\s?(켜|되|돼|들어가|잠기|도는|나오)"
 )
 # 제도·절차 문의
 INQUIRY = re.compile(
@@ -30,10 +30,13 @@ INQUIRY = re.compile(
     r"학점|전공|성적|문의|뽑을|내요|분실물"
 )
 # 문제 + 방법을 같이 묻는 표현 (신고인지 문의인지 섞인 경우)
-MIXED = re.compile(r"어떻게 해야|어떻게 하죠|누구한테|수 있나요")
+MIXED = re.compile(
+    r"어떻게 해야|어떻게 하죠|누구한테|수 있나요|어디에 말|신고 되|원래 (그|이런)|해도 되나요|번호 뭐|언제부터"
+)
 
 ASK_SLOT = re.compile(r"위치|몇 층|어느 건물|상황|자세히")
 ASK_REPORT_OR_INQUIRY = re.compile(r"신고로 접수")
+REPORT_DONE = re.compile(r"접수했어요|접수가 완료")
 WANT_REPORT = re.compile(r"신고|접수")
 WANT_INQUIRY = re.compile(r"안내")
 
@@ -64,6 +67,8 @@ def classify_rules(text: str, history: Sequence[tuple[str, str]] = ()) -> Label:
         return "unclear"
     if last_bot and ASK_SLOT.search(last_bot):
         return "report"
+    if last_bot and REPORT_DONE.search(last_bot) and _classify_text(text) is None:
+        return "unclear"  # 접수 완료 직후 인사·확인 — 새 신고 아님
 
     label = _classify_text(text)
     if label is not None:
