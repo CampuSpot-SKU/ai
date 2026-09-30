@@ -76,3 +76,18 @@ def test_fails_after_retry(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(intent, "_call_gemini", broken)
     with pytest.raises(IntentClassificationError):
         classify("물이 새요")
+
+
+@pytest.mark.parametrize(
+    ("talk", "expected"),
+    [("greeting", "chitchat"), ("thanks", "chitchat"), ("bye", "chitchat"),
+     ("smalltalk", "chitchat"), ("about", "chitchat"), ("off_topic", "off_topic")],
+)
+def test_talk_overrides_scores(talk: str, expected: str) -> None:
+    """인사·잡담·범위 밖은 점수와 상관없이 해당 판정 (되묻기 문구 없음)."""
+    r = decide(GeminiScores(report_score=50, inquiry_score=50, is_vague=True, talk=talk))  # type: ignore[arg-type]
+    assert r.intent == expected and r.talk == talk and r.clarifying_question is None
+
+
+def test_talk_none_keeps_normal_rules() -> None:
+    assert decide(GeminiScores(report_score=95, inquiry_score=5)).intent == "report"

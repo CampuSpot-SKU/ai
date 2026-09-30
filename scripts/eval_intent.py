@@ -49,7 +49,9 @@ def gemini_predictor(case: Case) -> tuple[str, str]:
     except Exception as e:  # noqa: BLE001 — 실패도 결과표에 오답(ERROR)으로 남김
         return "ERROR", repr(e)[:60]
     safety = " ⚠️" if res.safety_concern else ""
-    return res.intent, f"{res.report_score}/{res.inquiry_score}{safety}"
+    # 인사·잡담·범위 밖은 "신고도 문의도 아님"이라 평가 세트의 unclear(되묻기)와 같은 쪽으로 친다
+    label = "unclear" if res.intent in ("chitchat", "off_topic") else res.intent
+    return label, f"{res.report_score}/{res.inquiry_score}{safety}"
 
 
 def check_overlap(cases: list[Case]) -> list[tuple[str, str, float]]:

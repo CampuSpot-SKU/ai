@@ -30,7 +30,10 @@ CLARIFY_VAGUE = "무엇에 대해 말씀하시는 건지 조금 더 알려주시
 
 _PROMPT_PATH = Path(__file__).parent / "prompts" / "intent_classification.md"
 
-Intent = Literal["report", "inquiry", "unclear"]
+# chitchat = 인사·잡담, off_topic = 캠퍼스 시설 신고·학교 행정 문의와 무관한 요청 (둘 다 backend가 고정 문구 풀에서 짧게 답함)
+Intent = Literal["report", "inquiry", "unclear", "chitchat", "off_topic"]
+# 신고·문의가 아닌 말의 종류 — none이면 신고/문의/애매함 판정을 따름
+Talk = Literal["none", "greeting", "thanks", "bye", "smalltalk", "about", "off_topic"]
 
 
 class HistoryMessage(BaseModel):
@@ -45,6 +48,7 @@ class GeminiScores(BaseModel):
     inquiry_score: int = Field(ge=0, le=100)
     is_vague: bool = False
     safety_concern: bool = False
+    talk: Talk = "none"
 
 
 class IntentResult(BaseModel):
@@ -53,6 +57,7 @@ class IntentResult(BaseModel):
     inquiry_score: int
     safety_concern: bool
     clarifying_question: str | None = None
+    talk: Talk = "none"  # chitchat·off_topic일 때 어떤 말이었는지 (greeting/thanks/bye/smalltalk/about/off_topic)
 
 
 class IntentClassificationError(Exception):
@@ -61,6 +66,15 @@ class IntentClassificationError(Exception):
 
 def decide(scores: GeminiScores) -> IntentResult:
     """점수 → 최종 판정. Gemini 호출 없이 순수 계산이라 유닛테스트 대상."""
+    if scores.talk != "none":  # 신고·문의가 아닌 인사·잡담·범위 밖 — 점수는 무시
+        return IntentResult(
+            intent="off_topic" if scores.talk == "off_topic" else "chitchat",
+            report_score=scores.report_score,
+            inquiry_score=scores.inquiry_score,
+            safety_concern=False,
+            clarifying_question=None,
+            talk=scores.talk,
+        )
     diff = abs(scores.report_score - scores.inquiry_score)
     if scores.is_vague or diff <= AMBIGUITY_MARGIN:
         question = CLARIFY_VAGUE if scores.is_vague else CLARIFY_REPORT_OR_INQUIRY
