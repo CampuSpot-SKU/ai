@@ -61,7 +61,7 @@ talk가 none이 아니면 report_score / inquiry_score는 0 / 0으로 둔다. �
 - "강의실 너무 추운데 난방 언제부터 틀어줘요?" → 50 / 50
 - "4층이 이상해" → 78 / 22
 - "3층 복도 뭔가 이상해요" → 78 / 22
-- "안녕" (이전 대화 없음) → 0 / 0 (talk: greeting)
+- "하이" (이전 대화 없음) → 0 / 0 (talk: greeting)
 
 ## 이전 대화가 있는 예시
 - 이전 대화 "챗봇: 어느 건물인지 알려주시겠어요?" → "공학관이요" → 90 / 10
@@ -69,7 +69,7 @@ talk가 none이 아니면 report_score / inquiry_score는 0 / 0으로 둔다. �
 - 이전 대화 "챗봇: 접수가 완료됐어요. 접수번호는 CS-0105예요" → "감사합니다" → 50 / 50 (is_vague: true)
 
 ## talk 예시
-- "안녕하세요" → 0 / 0 (talk: greeting)
+- "반갑습니다" → 0 / 0 (talk: greeting)
 - "날씨가 좋네" → 0 / 0 (talk: smalltalk)
 - "오늘 날씨 알려줘" → 0 / 0 (talk: off_topic)
 - "햄버거 만드는 법" → 0 / 0 (talk: off_topic)
