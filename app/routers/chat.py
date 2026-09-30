@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from ai.intent import HistoryMessage, IntentClassificationError, IntentResult, classify
+from ai.judge import JudgeError, JudgeRequest, JudgeResult, judge
 from ai.say import SayError, SayRequest, SayResult, say
 from app.deps import verify_internal_secret
 
@@ -34,6 +35,15 @@ def report_say(req: SayRequest) -> SayResult:
         return say(req)
     except SayError:
         raise HTTPException(status_code=503, detail="문장 생성 실패") from None
+
+
+@router.post("/report/judge", response_model=JudgeResult)
+def report_judge(req: JudgeRequest) -> JudgeResult:
+    """신고 내용의 카테고리·영향도·긴급도·판정 이유를 판정 (실패하면 503 → backend가 규칙 기반 판정 사용)."""
+    try:
+        return judge(req)
+    except JudgeError:
+        raise HTTPException(status_code=503, detail="판정 실패") from None
 
 
 @router.post("/rag/answer")
