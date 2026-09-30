@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from ai.intent import HistoryMessage, IntentClassificationError, IntentResult, classify
+from ai.say import SayError, SayRequest, SayResult, say
 from app.deps import verify_internal_secret
 
 router = APIRouter(dependencies=[Depends(verify_internal_secret)])
@@ -24,6 +25,15 @@ def classify_intent(req: ClassifyRequest) -> IntentResult:
         return classify(req.text, req.history)
     except IntentClassificationError:
         raise HTTPException(status_code=503, detail="잠시 후 다시 시도해주세요") from None
+
+
+@router.post("/report/say", response_model=SayResult)
+def report_say(req: SayRequest) -> SayResult:
+    """신고 접수 대화 문장을 같은 뜻의 자연스러운 말투로 다듬음 (실패하면 503 → backend가 고정 문구 사용)."""
+    try:
+        return say(req)
+    except SayError:
+        raise HTTPException(status_code=503, detail="문장 생성 실패") from None
 
 
 @router.post("/rag/answer")
