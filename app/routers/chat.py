@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from ai.agent import AgentError, TurnRequest, TurnResult, turn
 from ai.intent import HistoryMessage, IntentClassificationError, IntentResult, classify
 from ai.judge import JudgeError, JudgeRequest, JudgeResult, judge
 from ai.say import SayError, SayRequest, SayResult, say
@@ -44,6 +45,18 @@ def report_judge(req: JudgeRequest) -> JudgeResult:
         return judge(req)
     except JudgeError:
         raise HTTPException(status_code=503, detail="판정 실패") from None
+
+
+@router.post("/report/turn", response_model=TurnResult)
+def report_turn(req: TurnRequest) -> TurnResult:
+    """신고 접수 대화 한 턴 — 학생 말을 이해하고 신고 상태·다음 말·다음 행동을 돌려줌 (1-3f).
+
+    실패하면 503 → backend가 기존 규칙 기반 흐름으로 대체.
+    """
+    try:
+        return turn(req)
+    except AgentError:
+        raise HTTPException(status_code=503, detail="대화 처리 실패") from None
 
 
 @router.post("/rag/answer")
