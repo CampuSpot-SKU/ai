@@ -80,6 +80,7 @@ class AgentState(BaseModel):
     """지금까지 이해한 신고 한 건. 모르는 값은 빈 문자열."""
 
     problem: str = ""  # 무엇이 어떻게 잘못됐는지 짧은 한 구절 ("정수기에서 물이 안 나와요")
+    symptom: str = ""  # 무엇이 어떻게 됐는지 눈에 보이는 증상 ("안 움직여요", "물이 새요") — "이상해요"뿐이면 빈 문자열
     problem_clear: bool = False
     plausible: bool = True  # 현실에서 있을 수 있는 시설 문제인가
     building: str = ""  # 학교 건물 목록의 이름 그대로 (목록에 없으면 빈 문자열)
@@ -156,7 +157,7 @@ _ROOMS = ("화장실", "강의실", "연구실", "교수실", "사무실", "실�
 
 # 생명·안전이 걸린 말 — 모델이 빠뜨려도 119·112 안내가 첫 답에 반드시 들어가게 코드가 한 번 더 확인한다
 _SAFETY_RE = re.compile(
-    r"화재|불이\s*(?:났|붙)|불났|연기가|연기\s*나|가스\s*(?:냄새|누출|샌|새)|감전|폭발|폭파|폭탄|쓰러|의식\s*(?:이\s*)?없|피가|피를|다쳤|다친|갇혔|갇혀|끼였|추락"
+    r"화재|불이\s*(?:났|붙)|불났|연기가\s*(?:나|자욱|가득|올라)|연기\s*나|가스\s*(?:냄새|누출|샌|새)|감전|폭발|폭파|폭탄|쓰러|의식\s*(?:이\s*)?없|(?<![가-힣])피가\s*(?:나|난|흘|철철|많)|피를\s*(?:흘|토|많)|다쳤|다친|갇혔|갇혀|끼였|추락"
 )
 SAFETY_PREFIX = "지금 위험하거나 다친 분이 있으면 먼저 119나 112에 연락해 주세요. "
 
@@ -167,6 +168,45 @@ def _needs_safety_line(req: TurnRequest, message: str) -> bool:
     if any(("119" in m.content or "112" in m.content) for m in req.conversation if m.role == "assistant"):
         return False
     return any(_SAFETY_RE.search(m.content) for m in req.conversation if m.role == "user")
+
+
+# 학생이 챗봇에게 우선순위·담당 부서·지시 무시를 요구하는 말 — 따르지 않는다는 한 문장을 코드가 보장한다
+_INSTRUCTION_RE = re.compile(
+    r"프롬프트|지시.{0,6}무시|무시하고|우선순위.{0,10}(?:만들|올려|바꿔|정해|해\s*줘|해줘)"
+    r"|P[1-4]\s*(?:으로|로)|긴급.{0,6}(?:처리|접수|배정)|배정해|담당.{0,4}(?:지정|배정)|관리자\s*권한|승인\s*처리"
+)
+INSTRUCTION_NOTE = "우선순위·담당 부서·승인 같은 처리 방식은 시스템이 정해서 제가 바꿀 수 없어요. "
+
+
+def _is_instruction(req: TurnRequest) -> bool:
+    users = [m.content for m in req.conversation if m.role == "user"]
+    return bool(users) and bool(_INSTRUCTION_RE.search(users[-1]))
+
+
+def _floor_set(floors_text: str) -> set[str]:
+    """"지하 1층, 1~3층, 5~8층" → {"B1", "1", "2", "3", "5", ...}. 층 정보가 없으면 빈 집합."""
+    out: set[str] = set()
+    for part in floors_text.split(","):
+        part = part.strip()
+        if m := re.fullmatch(r"지하\s*(\d+)층", part):
+            out.add(f"B{m.group(1)}")
+        elif m := re.fullmatch(r"(\d+)\s*~\s*(\d+)층", part):
+            out.update(str(n) for n in range(int(m.group(1)), int(m.group(2)) + 1))
+        elif m := re.fullmatch(r"(\d+)층", part):
+            out.add(m.group(1))
+    return out
+
+
+def _missing_floor_question(state: "AgentState", req: TurnRequest) -> str | None:
+    """그 건물에 없는 층이라고 했는데 아직 확인하지 않았으면 확인 질문 (있는 층을 알려줌)."""
+    if not (state.building and state.floor):
+        return None
+    info = next((b for b in req.buildings if b.name == state.building), None)
+    floors = _floor_set(info.floors) if info else set()
+    if not floors or state.floor in floors:
+        return None
+    label = f"지하 {state.floor[1:]}층" if state.floor.startswith("B") else f"{state.floor}층"
+    return f"{state.building}은 {info.floors if info else ''}이 있는 걸로 알아요. {label}이 맞나요?"
 
 
 def impossible_nesting(state: "AgentState") -> bool:
@@ -184,9 +224,10 @@ def _allowed_corpus(req: TurnRequest, with_hints: bool = False) -> str:
     parts = [m.content for m in req.conversation]
     if with_hints:  # 말에 쓸 수 있는 근거 — 호수 확정에는 쓰지 않음 (힌트의 호수는 후보 나열일 뿐)
         parts += req.hints
-    parts += [b.name for b in req.buildings]
-    parts += [c.label + c.building for c in req.candidates]
-    parts += [b.floors for b in req.buildings]
+    grounded = [b for b in req.buildings if _building_grounded(b.name, req)]  # 말한 적 없는 건물 이름은 쓸 수 없음
+    parts += [b.name for b in grounded]
+    parts += [c.label + c.building + (f"{c.floor}층" if c.floor else "") for c in req.candidates]
+    parts += [b.floors for b in grounded]
     return re.sub(r"\s+", "", " ".join(parts))
 
 
@@ -203,10 +244,20 @@ def _invented(message: str, req: TurnRequest) -> str | None:
     return None
 
 
+def _building_grounded(building: str, req: TurnRequest) -> bool:
+    """이 건물이 대화(줄임말 포함)·학교 데이터 후보·별칭 풀이 어딘가에 실제로 나왔나."""
+    text = re.sub(r"\s+", "", " ".join([m.content for m in req.conversation] + req.hints))
+    if building in text or building[:2] in text:  # "혜인"·"청운"처럼 줄여 말한 경우, "은주관"→은주1관·은주2관
+        return True
+    return any(c.building == building for c in req.candidates)
+
+
 def _clean_state(state: AgentState, req: TurnRequest) -> AgentState:
     names = {b.name for b in req.buildings}
     building = state.building.strip()
     note = state.location_note.strip()
+    if building and building in names and not _building_grounded(building, req):
+        building = ""  # 학생도 학교 데이터도 말하지 않은 건물을 모델이 짐작해 적은 것 — 지어낸 위치는 받지 않음
     if building and building not in names:  # 목록에 없는 건물을 건물로 쓰지 못하게 — 이름은 note로 남김
         note = note or building
         building = ""
@@ -223,6 +274,8 @@ def _clean_state(state: AgentState, req: TurnRequest) -> AgentState:
     floor = floor if _FLOOR_RE.match(floor) else ""
     return state.model_copy(
         update={
+            "problem_clear": state.problem_clear and bool(state.symptom.strip()),  # 구체적인 증상이 없으면 문제가 분명하다고 볼 수 없음
+            "symptom": state.symptom.strip()[:80],
             "building": building,
             "floor": floor,
             "near": near,
@@ -244,8 +297,7 @@ def validate(g: GeminiTurn, req: TurnRequest) -> TurnResult:
     state = _clean_state(g.state, req)
     message = " ".join(g.message.split()).strip('"').strip()
     choices = [c.strip() for c in g.choices if c.strip()]
-    if len(choices) > MAX_CHOICES or any(len(c) > MAX_CHOICE_LEN for c in choices):
-        raise AgentError("선택지 형식")
+    choices = [c for c in choices if len(c) <= MAX_CHOICE_LEN][:MAX_CHOICES]  # 길거나 많은 선택지는 버림 (말은 그대로 쓸 수 있음)
     if impossible_nesting(state):
         state = state.model_copy(update={"plausible": False})
         if g.action in ("confirm", "submit") and req.prev_action != "ask":  # 한 번은 되물어 거른다 (학생이 그대로라고 하면 담당자 확인으로 접수)
@@ -256,6 +308,21 @@ def validate(g: GeminiTurn, req: TurnRequest) -> TurnResult:
                 choices=["네, 근처예요", "정말 안에 있어요"],
                 state=state.model_copy(update={"staff_check": [*state.staff_check, f"{outer} 안 {inner}라고 함"]}),
             )
+    if g.action == "ask" and _is_instruction(req) and not state.symptom and not state.problem_clear:
+        # 신고 내용 없이 봇에게 지시만 한 경우 — 되묻지 않고 정중히 거절
+        return TurnResult(action="decline", message=INSTRUCTION_NOTE + "고장이나 불편한 점이 있다면 알려주세요.", choices=[], state=state)
+    if g.action == "ask" and req.prev_action == "ask" and not state.plausible and state.symptom and state.problem_clear:
+        # 걸러 묻기는 한 번이면 충분 — 학생이 같은 내용을 되풀이하면 더 캐묻지 않고 담당자 확인 건으로 확인 단계로 보낸다
+        what = " ".join(x for x in (state.place, state.symptom) if x).strip()
+        note = "현실과 달라 보여 담당자 확인 필요"
+        return TurnResult(
+            action="confirm",
+            message=f"'{what}' 내용으로 정리했어요. 실제와 다를 수 있어서 담당자가 먼저 확인하도록 접수할까요?",
+            choices=["네, 접수해 주세요", "내용을 고칠래요", "취소할게요"],
+            state=state.model_copy(update={"staff_check": [*state.staff_check, note][:5]}),
+        )
+    if g.action in ("confirm", "submit") and req.prev_action != "ask" and (q := _missing_floor_question(state, req)):
+        return TurnResult(action="ask", message=q, choices=["네, 그 층이 맞아요", "다른 층이에요"], state=state)
     if g.action == "submit":
         # 접수는 backend가 확인 단계 뒤에만 인정. 여기서는 형식만 — 말은 backend가 만든다.
         message = ""
@@ -276,8 +343,11 @@ def validate(g: GeminiTurn, req: TurnRequest) -> TurnResult:
             raise AgentError("확인 문장에 접수 여부 질문이 없음")
         if g.action == "ask" and not ("?" in message or "까요" in message or "세요" in message):
             raise AgentError("질문 형식")
-    if g.action in ("ask", "confirm", "decline") and _needs_safety_line(req, message):
-        message = SAFETY_PREFIX + message
+    if g.action in ("ask", "confirm", "decline"):
+        if _is_instruction(req) and "바꿀 수 없" not in message:
+            message = INSTRUCTION_NOTE + message
+        if _needs_safety_line(req, message):
+            message = SAFETY_PREFIX + message
     return TurnResult(action=g.action, message=message, choices=choices, state=state)
 
 
@@ -287,7 +357,7 @@ def _shared_client():  # type: ignore[no-untyped-def]
     return _client()
 
 
-def _call_gemini(req: TurnRequest) -> GeminiTurn:
+def _call_gemini(req: TurnRequest, temperature: float = 0.0) -> GeminiTurn:
     response = _shared_client().models.generate_content(
         model=os.environ.get("GEMINI_AGENT_MODEL") or os.environ.get("GEMINI_INTENT_MODEL") or DEFAULT_MODEL,
         contents=_build_content(req),
@@ -295,7 +365,7 @@ def _call_gemini(req: TurnRequest) -> GeminiTurn:
             system_instruction=_system_prompt(),
             response_mime_type="application/json",
             response_schema=GeminiTurn,
-            temperature=0.2,
+            temperature=temperature,
         ),
     )
     return GeminiTurn.model_validate_json(response.text or "")
@@ -306,7 +376,7 @@ def turn(req: TurnRequest) -> TurnResult:
     last_error: Exception | None = None
     for attempt in (1, 2):
         try:
-            return validate(_call_gemini(req), req)
+            return validate(_call_gemini(req, 0.0 if attempt == 1 else 0.4), req)
         except AgentError as e:
             last_error = e
         except (ValidationError, ValueError) as e:  # JSON 형식이 깨진 응답
