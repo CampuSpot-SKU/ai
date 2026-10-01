@@ -292,6 +292,49 @@ def _clean_state(state: AgentState, req: TurnRequest) -> AgentState:
     )
 
 
+_MISSING_RE = re.compile(r"'([^']+)' 교수 연구실은 학교 데이터 어디에도 없음.*?(?:비슷한 이름: ([^\n]+?))?$")
+
+
+def _mine(state: "AgentState", message: str) -> str:
+    parts = [state.problem, state.place, state.room_name, state.location_note, state.symptom, message]
+    return " ".join(parts)
+
+
+def _missing_names(req: "TurnRequest") -> list[tuple[str, list[str]]]:
+    """학교 데이터에 없는 교수 이름 (이름, 비슷한 이름들) — 학생이 아직 그 이름을 쓰고 있는 것만."""
+    out: list[tuple[str, list[str]]] = []
+    for h in req.hints:
+        m = _MISSING_RE.search(h)
+        if m:
+            out.append((m.group(1), [x.strip() for x in (m.group(2) or "").split(",") if x.strip()]))
+    return out
+
+
+def _missing_name_turn(state: "AgentState", req: "TurnRequest", action: str, message: str) -> "TurnResult | None":
+    """없는 곳을 말하면 (1) 어디에도 없다고 알리고 비슷한 곳을 묻고 (2) 그래도 맞다면 한 번 더 의심한 뒤에야 접수 확인으로 간다."""
+    if action not in ("ask", "confirm", "submit"):
+        return None
+    mine = _mine(state, message)
+    for name, similar in _missing_names(req):
+        if name not in mine:
+            continue  # 학생이 다른 이름으로 고쳤으면 더 묻지 않음
+        asked = sum(1 for m in req.conversation if m.role == "assistant")
+        note = f"학교 데이터에 없는 교수 연구실: {name} (학생이 있다고 함)"
+        if asked == 0:
+            if similar:
+                names = "·".join(f"{n}" for n in similar)
+                text = f"'{name} 교수님 연구실'은 학교 정보의 어느 건물에서도 찾지 못했어요. 비슷한 이름으로 {names} 교수님이 계시는데, 혹시 이쪽일까요? 다른 이름이나 다른 방·공간일 수도 있어요."
+                choices = [f"{n} 교수님이에요" for n in similar[:3]] + ["그 이름이 맞아요"]
+            else:
+                text = f"'{name} 교수님 연구실'은 학교 정보의 어느 건물에서도 찾지 못했어요. 이름을 다르게 알고 계시거나 다른 방·공간일 수도 있는데, 다시 한 번 확인해 주실 수 있을까요?"
+                choices = ["그 이름이 맞아요", "잘못 말했어요"]
+            return TurnResult(action="ask", message=text, choices=choices[:5], state=state.model_copy(update={"staff_check": [*state.staff_check, note][:5]}))
+        if asked == 1:
+            text = f"그래도 '{name} 교수님 연구실'은 제 학교 정보에는 없어요. 정말 그곳에 있는 게 맞는 거지요?"
+            return TurnResult(action="ask", message=text, choices=["네, 진짜 있어요", "잘못 말했어요"], state=state.model_copy(update={"staff_check": [*state.staff_check, note][:5]}))
+    return None
+
+
 def validate(g: GeminiTurn, req: TurnRequest) -> TurnResult:
     """Gemini 결과 검사 — 통과하면 TurnResult, 아니면 AgentError."""
     state = _clean_state(g.state, req)
@@ -308,6 +351,14 @@ def validate(g: GeminiTurn, req: TurnRequest) -> TurnResult:
                 choices=["네, 근처예요", "정말 안에 있어요"],
                 state=state.model_copy(update={"staff_check": [*state.staff_check, f"{outer} 안 {inner}라고 함"]}),
             )
+    if (miss := _missing_name_turn(state, req, g.action, message)) is not None:
+        if _needs_safety_line(req, miss.message):
+            miss = miss.model_copy(update={"message": SAFETY_PREFIX + miss.message})
+        return miss
+    for name, _similar in _missing_names(req):  # 두 번 확인하고도 우기면 접수하되 담당자가 사실 확인
+        note = f"학교 데이터에 없는 교수 연구실: {name} (학생이 있다고 함)"
+        if name in _mine(state, message) and note not in state.staff_check:
+            state = state.model_copy(update={"staff_check": [*state.staff_check, note][:5], "location_certainty": "uncertain"})
     if g.action == "ask" and _is_instruction(req) and not state.symptom and not state.problem_clear:
         # 신고 내용 없이 봇에게 지시만 한 경우 — 되묻지 않고 정중히 거절
         return TurnResult(action="decline", message=INSTRUCTION_NOTE + "고장이나 불편한 점이 있다면 알려주세요.", choices=[], state=state)
