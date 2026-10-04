@@ -480,6 +480,19 @@
     "title": "국제교류학교",
     "url": "https://www.skuniv.ac.kr/partner_institutions_abroad"
   },
+  "professors": {
+    "chars": 23711,
+    "group": "조직도·전화번호",
+    "headings": 0,
+    "images": 0,
+    "note": "사람이 직접 넣은 내용(manual) — 사이트 추출보다 우선",
+    "source": "manual",
+    "status": "ok",
+    "tables": 0,
+    "tier": 1,
+    "title": "학과 교수진 연락처",
+    "url": "https://www.skuniv.ac.kr/organization-phone"
+  },
   "reinstatement": {
     "chars": 269,
     "group": "학적",

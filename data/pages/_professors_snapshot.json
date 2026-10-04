@@ -1,0 +1,3576 @@
+{
+ "pages": {
+  "https://ad.skuniv.ac.kr/ad_professor": {
+   "departments": [
+    "광고홍보영상학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학위명 : 광고학석사",
+      "전공분야 : 광고디자인, 광고제작, 광고 Creative Director, 광고 Photograph",
+      "연구실 : 혜인관 508-4호",
+      "이메일: mgjerry@skuniv.ac.kr"
+     ],
+     "name": "김문기",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 광고학석사",
+      "전공분야 : 광고영상기획, 광고영상제작, 광고 Creative Director, 광고PD, 광고카피라이팅",
+      "연구실 : 혜인관 508-1호",
+      "이메일: heeyeonee@naver.com"
+     ],
+     "name": "김희연",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 광고학석사",
+      "전공분야 : 광고기획, 광고마케팅, 광고AE, 기업홍보, 디지털광고, 트리플미디어 마케팅, 디지털콘텐츠기획",
+      "연구실 : 혜인관 508-3호",
+      "이메일: skyroadrei@skuniv.ac.kr"
+     ],
+     "name": "김계현",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : MFA Electronic Art",
+      "전공분야 : 광고 CF, 뮤직비디오, CM 영상제작, CM 촬영",
+      "연구실 : 혜인관 508-2호",
+      "이메일: yesbrain2002@naver.com"
+     ],
+     "name": "채희석",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 경영학석사(MBA)",
+      "전공분야 : 브랜드, 마케팅, 커뮤니케이션",
+      "연구실 : 한림관 1513호",
+      "이메일: parkjaehang@skuniv.ac.kr"
+     ],
+     "name": "박재항",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 경영학석사",
+      "전공분야 : 디지털광고/방송광고/미디어랩광고/광고매체운영",
+      "연구실 : 유담관 522호",
+      "TEL : 02-940-7833",
+      "이메일: kjk325@skuniv.ac.kr"
+     ],
+     "name": "김진규",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://arte.skuniv.ac.kr/arte_professor": {
+   "departments": [
+    "아트앤테크놀로지학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학과장",
+      "전공분야 : 콘텐츠 연출",
+      "연구실 : 북악관 714호",
+      "Tel : 02-940-7767",
+      "이메일: zieezu@skuniv.ac.kr"
+     ],
+     "name": "주지희",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 영상공학",
+      "연구실 : 유담관 1521호",
+      "Tel : 02-940-2926",
+      "이메일: shkim0207@skuniv.ac.kr"
+     ],
+     "name": "김상훈",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 실감콘텐츠, 인터렉티브미디어, 게임디자인",
+      "연구실 : 한림관 1011호",
+      "Tel : 02-940-7490",
+      "이메일: cooperyoo@skuniv.ac.kr",
+      "홈페이지 : https://cooperyoo.com"
+     ],
+     "name": "유상현",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 데이터 시각화, UX 공간 컴퓨팅, 실감 콘텐츠",
+      "연구실 : 유담관 1603호",
+      "Tel : 02-940-7922",
+      "이메일: mkryoo@skuniv.ac.kr"
+     ],
+     "name": "유미옥",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 가상현실, 컴퓨터그래픽스",
+      "연구실: 유담관 1609호",
+      "Tel : 02-940-7928",
+      "이메일: whitelion@skuniv.ac.kr"
+     ],
+     "name": "김두범",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 인공지능, 실감콘텐츠, 휴먼팩터",
+      "연구실 : 유담관 1607호",
+      "Tel : 02-940-7926",
+      "이메일: daeyeon@skuniv.ac.kr"
+     ],
+     "name": "김대연",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 인공지능, 홀로그램/3D/AR/VR 시스템",
+      "연구실 : 유담관 1606호",
+      "Tel : 02-940-7925",
+      "이메일: bhogil@skuniv.ac.kr"
+     ],
+     "name": "백호길",
+     "retired": false,
+     "section": "교수진소개"
+    }
+   ]
+  },
+  "https://bs.skuniv.ac.kr/bs_professor": {
+   "departments": [
+    "경영학부"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "전공분야 : 경영학(무역이론및금융)",
+      "연구실 : 한림관 1113호 / 02-940-7164",
+      "이메일: ccy666 @skuniv.ac.kr"
+     ],
+     "name": "최창열",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 국제경영학",
+      "연구실 : 한림관 1614호 / 02-940-7218"
+     ],
+     "name": "정한경",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 경영학",
+      "연구실 : 한림관 1606호 / 02-940-2929"
+     ],
+     "name": "장정길",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 회계학",
+      "연구실 : 한림관 1609호 / 010-6299-9449",
+      "이메일: julbudy@hanmail.net"
+     ],
+     "name": "안성열",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 마케팅",
+      "연구실 : 한림관 1004호 / 02-940-7483",
+      "이메일: kseuni@skuniv.ac.kr"
+     ],
+     "name": "강승은",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 자산운용, Asset Pricing, Cross-border Tax Planning",
+      "연구실 : 한림관 714호 / 02-940-7881"
+     ],
+     "name": "조정근",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 정보기술관리",
+      "연구실 : 한림관701호 / 02-940-7871",
+      "이메일: sung@skuniv.ac.kr"
+     ],
+     "name": "김성호",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 보건복지경영(사회복지, 마케팅)",
+      "연구실 : 한림관 1001호 / 02-940-7212",
+      "이메일: david888@skuniv.ac.kr"
+     ],
+     "name": "이봉휘",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 경영학",
+      "담당과목 : 경영학원론, e비즈니스",
+      "연구실 : 유담관 1525호 / 02-940-2930",
+      "이메일: kcm2018@skuniv.ac.kr / m984302@naver.com"
+     ],
+     "name": "김철문",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 경영학",
+      "연구실 : 교무처장실 / 02-940-7878",
+      "이메일: choiws@skuniv.ac.kr"
+     ],
+     "name": "최우석",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 경영정보시스템/빅데이터분석",
+      "연구실 : 한림관 1612호 / 02-940-7211",
+      "이메일: iychoi@skuniv.ac.kr"
+     ],
+     "name": "최일영",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 회계학",
+      "연구실 : 한림관 1007호 / 02-940-7486",
+      "이메일: dmswls728@skuniv.ac.kr"
+     ],
+     "name": "송은진",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 마케팅",
+      "연구실 : 한림관 1615호 / 02-940-7414",
+      "이메일: seukhokim@skuniv.ac.kr"
+     ],
+     "name": "김석호",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 경영컨실팅학/AX Strategy/DataScience/Bigdata Mgmt",
+      "연구실 : 한림관 1212호 / 02-940-7995",
+      "이메일: jameslee @skuniv.ac.kr"
+     ],
+     "name": "이정민",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 디지털무역/협상과 통상",
+      "연구실 : 한림관 1211호 / 02-940-7458",
+      "이메일: mkkim01@skuniv.ac.kr"
+     ],
+     "name": "김미금",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 경영학",
+      "연구실 : 한림관 711호 / 02-940-7538",
+      "이메일: hhh8129@hanmail.net"
+     ],
+     "name": "허진우",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 국제통상학",
+      "연구실 : 한림관 1410호 / 02-940-7440"
+     ],
+     "name": "서경",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 마케팅",
+      "연구실 : 한림관 1104호",
+      "이메일: jky9618@hanmail.net"
+     ],
+     "name": "전규열",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 경영과학"
+     ],
+     "name": "박영선",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 경제학"
+     ],
+     "name": "김영호",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 회계학"
+     ],
+     "name": "박용무",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 인사조직",
+      "담당과목 : 경영전략, 조직관리, 기업컨설팅, 인적자원관리",
+      "연구실 : 유담관 1510호 / 02-940-2919",
+      "이메일: jhkim95@skuniv.ac.kr"
+     ],
+     "name": "김종훈",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 회계학",
+      "연구실 : 본관 522호 / 02-940-7220"
+     ],
+     "name": "한문성",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 재무관리"
+     ],
+     "name": "김서경",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 경영정보학",
+      "연구실 : 한림관 1506호 / 02-940-7421",
+      "이메일: tdhan@skuniv.ac.kr"
+     ],
+     "name": "한태동",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 인사조직"
+     ],
+     "name": "김영진",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://cm.skuniv.ac.kr/cm_professor": {
+   "departments": [
+    "실용음악학부"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "공연예술대학장",
+      "전공분야 : 문화예술학",
+      "연구실 : 대일관 212호"
+     ],
+     "name": "장웅상",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "초빙교수",
+      "전공분야 : 음향",
+      "연구실 : 대일관 203호"
+     ],
+     "name": "강호정",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조교수",
+      "전공분야 : 작곡",
+      "연구실 : 대일관 207호"
+     ],
+     "name": "강화성",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 피아노",
+      "연구실 : 대일관 708호"
+     ],
+     "name": "길은경",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 음향",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "김세훈",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "전공분야 : 음향",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "김영식",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 보컬, 싱어송라이터",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "김지환",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 작곡, 싱어송라이터",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "나원주",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조교수",
+      "전공분야 : 보컬, 싱어송라이터",
+      "연구실 : 대일관 206호"
+     ],
+     "name": "박경훈",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 베이스",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "박종우",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "특임교수",
+      "전공분야 : 피아노",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "배장은",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조교수",
+      "전공분야 : 피아노",
+      "연구실 : 대일관 201호"
+     ],
+     "name": "송성경",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 보컬",
+      "연구실 : 대일관 706호"
+     ],
+     "name": "송지영",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 드럼",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "염성길",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 트럼본",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "우성민",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "초빙 교수",
+      "전공분야 :보컬",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "원창준",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 :싱어송라이터, 작곡",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "유지선",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 기타",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "윤경로",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 보컬",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "윤진우",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 드럼",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "이도헌",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조교수",
+      "전공분야 : 색소폰",
+      "연구실 : 대일관 202호"
+     ],
+     "name": "이동욱",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 드럼",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "이상민",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 기타",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "이성열",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 음향",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "이종현",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조교수",
+      "전공분야 : 베이스",
+      "연구실 : 대일관 205호"
+     ],
+     "name": "장종집",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 보컬",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "전상근",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 드럼",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "정동윤",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조교수",
+      "전공분야 : 피아노",
+      "연구실 : 대일관 208호"
+     ],
+     "name": "정동환",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 기타",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "조예찬",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 트럼펫",
+      "연구실 : 대일관 706호"
+     ],
+     "name": "조정현",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 피아노",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "최태완",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 베이스",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "최훈",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 베이스",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "한가람",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 기타",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "허석",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 기타",
+      "연구실 : 대일관 703호"
+     ],
+     "name": "황이현",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://cr.skuniv.ac.kr/cr_professor": {
+   "departments": [
+    "아동청소년학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학위명 : 문학박사",
+      "전공분야 : 영유아보육 및 발달",
+      "연구실 : 한림관 911호 / 02-940-7506",
+      "이메일: shinhye@skuniv.ac.kr"
+     ],
+     "name": "신혜원",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 생활과학박사",
+      "전공분야 : 영유아보육",
+      "연구실 : 한림관 607호 / 02-940-7550",
+      "이메일: mkinder@skuniv.ac.kr"
+     ],
+     "name": "민미희",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 문학박사",
+      "전공분야 : 영유아보육",
+      "연구실 : 한림관 910호 / 02-940-7505",
+      "이메일: sys7777@skuniv.ac.kr"
+     ],
+     "name": "신윤승",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 문학박사",
+      "전공분야 : 영유아발달",
+      "연구실 : 한림관 612호 / 02-940-7554",
+      "이메일: ryuym0406@skuniv.ac.kr"
+     ],
+     "name": "유영미",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 교육학석사/박사수료",
+      "전공분야 : 아동미술교육",
+      "연구실 : 한림관 1406호 / 02-940-7437",
+      "이메일: chaeyoung@skuniv.ac.kr"
+     ],
+     "name": "정채영",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://cs.skuniv.ac.kr/cs_professor": {
+   "departments": [
+    "소프트웨어학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "공학박사",
+      "전공분야 : 생체신호분석, 인공감성지능, 휴먼-컴퓨터 상호작용",
+      "연구실 : 한림관 804호 / 02-940-7515",
+      "이메일: sunheekim@skuniv.ac.kr"
+     ],
+     "name": "김선희",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "공학박사",
+      "전공분야 : 분산시스템, 센서 네트워크, 데이터베이스",
+      "연구실 : 북악관 611호 / 02-940-7756",
+      "이메일: sskim03@skuniv.ac.kr"
+     ],
+     "name": "김성석",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "이학박사",
+      "전공분야 : 소프트웨어설계, 소프트웨어개발환경, 태스크 스케줄링",
+      "연구실 : 북악관 604호 / 02-940-7753",
+      "이메일: jkrho@skuniv.ac.kr"
+     ],
+     "name": "노정규",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "공학박사",
+      "전공분야 : 3D 컴퓨터그래픽스, 애니메이션",
+      "연구실 :북악관 602호 / 02-940-7751",
+      "이메일: swyoo@skuniv.ac.kr"
+     ],
+     "name": "류석원",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "이학박사",
+      "전공분야 : 데이터베이스, 지식기반시스템",
+      "연구실 : 북악관 601호 / 02-940-7750",
+      "이메일: mkmin@skuniv.ac.kr"
+     ],
+     "name": "민미경",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "공학박사",
+      "전공분야 : 시스템소프트웨어, 객체지향개발방법, 설계패턴",
+      "연구실 : 북악관 610호 / 02-940-7755",
+      "이메일: wcshin@skuniv.ac.kr"
+     ],
+     "name": "신우창",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "이학박사",
+      "전공분야 : Big Data, Deep learning",
+      "연구실 : 북악관 603호 / 02-940-7752",
+      "이메일: gyryu@skuniv.ac.kr"
+     ],
+     "name": "유귀열",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "정보시스템학 박사",
+      "전공분야 : 인공지능 기반 빅데이터분석, 자연어처리(NLP)",
+      "연구실 : 북악관 612호 / 02-940-7757",
+      "이메일: j.ann.lee@skuniv.ac.kr"
+     ],
+     "name": "이지영",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "공학박사",
+      "전공분야 : 인공지능, 정보검색, 지식처리",
+      "연구실 : 북악관 606호 / 02-940-7754",
+      "이메일: cosmos@skuniv.ac.kr"
+     ],
+     "name": "장문수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "이메일: oleesh@skuniv.ac.kr"
+     ],
+     "name": "이숙희",
+     "retired": true,
+     "section": "퇴임교수"
+    },
+    {
+     "lines": [
+      "공학박사",
+      "전공분야 : 인터넷, 정보기술",
+      "이메일: jong@skuniv.ac.kr"
+     ],
+     "name": "박종준",
+     "retired": true,
+     "section": "퇴임교수"
+    },
+    {
+     "lines": [
+      "공학박사",
+      "전공분야 : Formal Language, (그래프) 알고리즘, 이동통신",
+      "이메일: tejeong@skuniv.ac.kr"
+     ],
+     "name": "정태의",
+     "retired": true,
+     "section": "퇴임교수"
+    },
+    {
+     "lines": [
+      "공학박사",
+      "전공분야 : 컴퓨터 네트워크",
+      "이메일: jckwak@skuniv.ac.kr"
+     ],
+     "name": "곽재창",
+     "retired": true,
+     "section": "퇴임교수"
+    },
+    {
+     "lines": [
+      "이학박사",
+      "전공분야 : 확률론",
+      "이메일: kcy@skuniv.ac.kr"
+     ],
+     "name": "김치용",
+     "retired": true,
+     "section": "퇴임교수"
+    }
+   ]
+  },
+  "https://cv.skuniv.ac.kr/cv_professor": {
+   "departments": [
+    "토목건축공학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "한국콘크리트학회 회장 (2023.01~2024.12)",
+      "학위명 : 공학박사",
+      "전공분야 : 콘크리트",
+      "연구실 : 02-940-7769",
+      "이메일 : zskim@skuniv.ac.kr"
+     ],
+     "name": "김지상",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학과장",
+      "학위명 : 공학박사",
+      "전공분야 : 지반 및 도로",
+      "연구실 : 02-940-7105",
+      "이메일 : geotech@skuniv.ac.kr",
+      "홈페이지 : http://cafe.naver.com/skgeo"
+     ],
+     "name": "최재순",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 공학박사",
+      "전공분야 : 수공학/방재",
+      "연구실 : 02-940-7770",
+      "이메일 : wrr21@naver.com",
+      "홈페이지: https://skuwdsl.skuniv.ac.kr"
+     ],
+     "name": "안재현",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 공학박사",
+      "전공분야 : 건설경영",
+      "연구실 : 02-940-7448",
+      "이메일 : skipper1010@nate.com"
+     ],
+     "name": "전진구",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "한국방재협회 회장 (2023.03~2026.02)",
+      "학위명 : 경영학박사",
+      "전공분야 : 방재/재난관리",
+      "연구실 : 02-940-7181",
+      "이메일 : sdm-0614@naver.com"
+     ],
+     "name": "방기성",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위/자격명 : 공학석사/건축사",
+      "전공분야 : 건축학/건축계획",
+      "연구실 : 02-940-7203",
+      "이메일 : nakks38@skuniv.ac.kr"
+     ],
+     "name": "김광식",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 공학박사",
+      "전공분야 : 콘크리트 재료/내구성",
+      "연구실 : 02-940-7171",
+      "이메일 : yooks815@skuniv.ac.kr"
+     ],
+     "name": "유경석",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://da.skuniv.ac.kr/da_professor": {
+   "departments": [
+    "무용예술학부"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학부장/교수",
+      "학위명 : 무용학 박사",
+      "전공분야 : 한국무용",
+      "연구실 전화번호 : 02-940-7236",
+      "이메일: shjeon@skuniv.ac.kr"
+     ],
+     "name": "전순희",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "조교수",
+      "학위명 : 이학 박사",
+      "전공분야 : 한국무용 부전공(실용무용)",
+      "연구실 전화번호 : 02-940-7237",
+      "이메일: ghyoum@skuniv.ac.kr"
+     ],
+     "name": "염계화",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 한국무용 전공",
+      "이메일: swm0320@naver.com"
+     ],
+     "name": "손원미",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 한국무용 전공",
+      "이메일: 4281soo@naver.com"
+     ],
+     "name": "천옥수",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야 : 한국무용 전공",
+      "이메일: chumball@naver.com"
+     ],
+     "name": "신성철",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 한국무용 전공",
+      "이메일: hjn0128@naver.com"
+     ],
+     "name": "장효진",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 한국무용 전공",
+      "이메일: dbs1129@hanmail.net"
+     ],
+     "name": "윤슬기",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 한국무용 전공",
+      "이메일: skzl503287@skuniv.ac.kr"
+     ],
+     "name": "김미정",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야 : 한국무용 전공",
+      "이메일: wkddud1208@naver.com"
+     ],
+     "name": "장영",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 한국무용 전공",
+      "이메일: boririi@naver.com"
+     ],
+     "name": "김은진",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야 : 한국무용 전공",
+      "이메일: dance1987@hanmail.net"
+     ],
+     "name": "홍지현",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 한국무용 전공",
+      "이메일: gusdkaudghk@naver.com"
+     ],
+     "name": "백현아",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야 : 한국무용 전공",
+      "이메일: judy9299@naver.com"
+     ],
+     "name": "홍은채",
+     "retired": false,
+     "section": "한국무용"
+    },
+    {
+     "lines": [
+      "주임교수",
+      "학위명 : 공연영상학 박사 (무용전공)",
+      "전공분야 : 실용무용 스트릿댄스",
+      "연구실 전화번호 : 02-940-7239",
+      "이메일: rapcher@hanmail.net"
+     ],
+     "name": "천성욱",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "전임교수",
+      "학위명 : 공연영상학 박사 (무용전공)",
+      "전공분야 : 실용무용 스트릿댄스",
+      "이메일: tnwjd8768 @hanmail.net"
+     ],
+     "name": "김수정",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "초빙교수",
+      "전공분야 : 팝핑"
+     ],
+     "name": "이지훈",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야 : 힙합"
+     ],
+     "name": "고준영(DROP)",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야 : 왁킹"
+     ],
+     "name": "이수철(BlackSwan)",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야 : 하우스"
+     ],
+     "name": "윤소미(YOON)",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야: 왁킹"
+     ],
+     "name": "백다예(IVY)",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야: 크럼프"
+     ],
+     "name": "정지훈(Damage)",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야: 브레이킹"
+     ],
+     "name": "최동욱(Bboy Rush)",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야: 걸스힙합"
+     ],
+     "name": "김윤진(NIZ)",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야: 디제잉,스트릿댄스뮤직"
+     ],
+     "name": "주세환(JooPop)",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야: 왁킹"
+     ],
+     "name": "공수진",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야: 소울,왁킹"
+     ],
+     "name": "김지석(Soul.K)",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야: 락킹"
+     ],
+     "name": "권석진",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야: 소울,왁킹"
+     ],
+     "name": "김지유(ZIYU)",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야: 코레오 그래피"
+     ],
+     "name": "오수민",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야: 코레오그래피"
+     ],
+     "name": "조서현",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야: 락킹"
+     ],
+     "name": "이슬아",
+     "retired": false,
+     "section": "실용무용"
+    },
+    {
+     "lines": [
+      "외래교수",
+      "전공분야: 걸리쉬, 댄스홀"
+     ],
+     "name": "김민지",
+     "retired": false,
+     "section": "실용무용"
+    }
+   ]
+  },
+  "https://eg.skuniv.ac.kr/eg_professor": {
+   "departments": [
+    "글로벌비즈니스어학부"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학위명 (Degree) : 영어교육학박사",
+      "전공분야 (Major field) : 영어학 / 영어교육",
+      "연구실 (Office) : 한림관 1204호 / 02-940-7116",
+      "이메일: punahm17@skuniv.ac.kr"
+     ],
+     "name": "박부남",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 (Degree) : 석사( TESOL)",
+      "전공분야 (Major field) : 영어교육",
+      "연구실 (Office) : 한림관 1110호 / 02-940-7473",
+      "이메일: lydiasy@skuniv.ac.kr"
+     ],
+     "name": "이승연",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 (Degree) : 석사 (MA)",
+      "전공분야 (Major field) : 철학; 동아시아학 (Philosophy; East Asian Studies)",
+      "연구실 (Office) : 한림관 1206호 (Hanlim 1206)"
+     ],
+     "name": "MarkC.Bell",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 (Degree) : 석사 (MA)",
+      "전공분야 (Major field) : 철학 (Philosophy)",
+      "연구실 (Office) : 한림관 1403호 (Hanlim 1403)"
+     ],
+     "name": "A.JakePreston",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 (Degree) : 학사 BA(with Distinction), University of Victoria",
+      "전공분야 (Major field) : 영문학 (English Literature)",
+      "연구실 : 한림관 814호 (Hanlim 814)"
+     ],
+     "name": "PeteSchandall",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 (Degree) : 석사(MA TESOL), 박사(EdD TESOL)",
+      "전공분야 (Major field) : 교육학 (Education)",
+      "연구실 (Office) : 한림관 1008호 (Hanlim 1008)",
+      "이메일: qureshi@skuniv.ac.kr"
+     ],
+     "name": "BilalQureshi",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 (Degree) : 석사 (M.A.,M.Div.)",
+      "전공분야 (Major field) : 신학연구 (Theological Studies)",
+      "연구실 (Office) : 한림관 1405호 (Hanlim 1405)"
+     ],
+     "name": "BenjaminSpink",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 (Degree) : 석사 (MMus (Sydney University), Master of Teaching (Monash University)",
+      "전공분야 (Major field) : 음악, 교육학 (Music and Education)",
+      "연구실 (Office) : 한림관 1209호 (Hanlim 1209)"
+     ],
+     "name": "VanessaPark(박민선)",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://eh.skuniv.ac.kr/eh_professor": {
+   "departments": [
+    "헤어디자인학과",
+    "메이크업디자인학과",
+    "코스메틱뷰티매니지먼트학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "조교수/학과장",
+      "미용예술학 박사",
+      "전공분야 :헤어미용,커트디자인,퍼머넌트디자인",
+      "연구실: 유담관 519-A호",
+      "연구실 전화번호:02-940-7846",
+      "이메일: mijilim@skuniv.ac.kr"
+     ],
+     "name": "임미지",
+     "retired": false,
+     "section": "헤어디자인학과"
+    },
+    {
+     "lines": [
+      "부교수/미용예술대 학장",
+      "뷰티디자인학박사/ 경영학박사",
+      "전공분야: 헤어, 뷰티서비스경영",
+      "연구실 : 유담관 506호",
+      "연구실 전화번호 : 02-940-7825",
+      "이메일: junoedu@skuniv.ac.kr"
+     ],
+     "name": "박진현",
+     "retired": false,
+     "section": "헤어디자인학과"
+    },
+    {
+     "lines": [
+      "초빙교수",
+      "미용예술학 박사",
+      "전공분야 : 헤어컨슈머, 헤어바이나이트, 고전머리",
+      "연구실: 유담관 511호",
+      "연구실 전화번호: 02-940-7416",
+      "이메일: kgh6255@hanmail.net"
+     ],
+     "name": "권기형",
+     "retired": false,
+     "section": "헤어디자인학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미용산업경영 석사",
+      "전공분야 : 미용교육, 헤어커트",
+      "이메일: mgb501@naver.com"
+     ],
+     "name": "최재영",
+     "retired": false,
+     "section": "헤어디자인학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미술학 박사",
+      "전공분야 : 색채학, 색채교육, 컬러트렌드, 컬러북",
+      "이메일: kchallcy@naver.com"
+     ],
+     "name": "김민기",
+     "retired": false,
+     "section": "헤어디자인학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미용예술학 박사",
+      "전공분야 : 퍼머넌트디자인, 컬러링, 커트디자인, 미용 경영",
+      "이메일: lxxeunpyo@skuniv.ac.kr"
+     ],
+     "name": "이은표",
+     "retired": false,
+     "section": "헤어디자인학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미용예술학 박사",
+      "전공분야: 헤어미용, 실무현장, 퍼머넌트에이브, 히팅펌",
+      "이메일: llllmmmss@skuniv.ac.kr"
+     ],
+     "name": "이민선",
+     "retired": false,
+     "section": "헤어디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "경영학 박사",
+      "전공분야 : 헤어컬러, 모발과학, 헤드스파",
+      "이메일: melody@skuniv.ac.kr"
+     ],
+     "name": "도미라",
+     "retired": false,
+     "section": "헤어디자인학과"
+    },
+    {
+     "lines": [
+      "부 교수/학과장",
+      "미용예술학 박사",
+      "전공분야 : 뷰티&패션메이크업, 아트메이크업, 뷰티일러스트레이션",
+      "연구실: 유담관 515호",
+      "연구실 전화번호 : 02-940-7828",
+      "이메일: youngjj@skuniv.ac.kr"
+     ],
+     "name": "주영주",
+     "retired": false,
+     "section": "메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "부교수/미용예술대 부학장",
+      "디자인학 박사",
+      "전공분야 : 뷰티&패션메이크업, 이미지메이킹, 색채학",
+      "연구실: 유담관 516호",
+      "연구실 전화번호 : 02 940-7812",
+      "이메일: syshin@skuniv.ac.kr"
+     ],
+     "name": "신세영",
+     "retired": false,
+     "section": "메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미용예술학 박사",
+      "전공분야 : 무대분장",
+      "이메일: creamakeup@skuniv.ac.kr"
+     ],
+     "name": "채송화",
+     "retired": false,
+     "section": "메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "전공분야 : 메이크업디자인, 뷰티 색채",
+      "이메일: mejalsa@skuniv.ac.kr"
+     ],
+     "name": "김태연",
+     "retired": false,
+     "section": "메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미용예술학 석사",
+      "전공분야 : 무대분장",
+      "이메일: faceoff@skuniv.ac.kr"
+     ],
+     "name": "임유경",
+     "retired": false,
+     "section": "메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "뷰티디자인 석사",
+      "전공분야 : 메이크업, 뷰티일러스트레이션",
+      "이메일: yekoh99@skuniv.ac.kr"
+     ],
+     "name": "고영은",
+     "retired": false,
+     "section": "메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야 : 뷰티&패션메이크업",
+      "이메일: mminami@skuniv.ac.kr"
+     ],
+     "name": "김미나",
+     "retired": false,
+     "section": "메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "전공분야 : 뷰티&패션메이크업",
+      "이메일: makeupsoo@skuniv.ac.kr"
+     ],
+     "name": "김수민",
+     "retired": false,
+     "section": "메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "디자인학 석사",
+      "전공분야 : 향료학, 조향학",
+      "이메일: schall@skuniv.ac.kr"
+     ],
+     "name": "박선영",
+     "retired": false,
+     "section": "메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "디자인학 석사",
+      "전공분야 : 트렌드메이크업디자인, 디지털뷰티크리에이션, 뷰티브랜드마케팅",
+      "이메일: huichai@skuniv.ac.kr"
+     ],
+     "name": "전희찬",
+     "retired": false,
+     "section": "메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "부교수/학과장/학부시간제 담당교수",
+      "공학박사, 교육학박사",
+      "전공분야 : 피부과학, 기능성화장품학, Facial grooming, 화장품성분학, Aromachology",
+      "연구실: 유담관 514호",
+      "연구실 전화번호 : 02-940-7816",
+      "이메일: poshop99@skuniv.ac.kr"
+     ],
+     "name": "김은숙",
+     "retired": false,
+     "section": "코스메틱뷰티매니지먼트학과"
+    },
+    {
+     "lines": [
+      "교수",
+      "이학박사",
+      "전공분야 : 뷰티마케팅&매니지먼트, 소비자 심리, 미용문화사,토탈코디네이션",
+      "연구실: 유담관 519-B호",
+      "연구실 전화번호 : 02-940-7847",
+      "이메일: miwoonam@skuniv.ac.kr"
+     ],
+     "name": "남미우",
+     "retired": false,
+     "section": "코스메틱뷰티매니지먼트학과"
+    },
+    {
+     "lines": [
+      "부교수/ 진로취업처장/진로취업처 대학일자리플러스본부장",
+      "경영학 박사",
+      "전공분야 : 화장품마케팅, 화장품상품기획",
+      "연구실: 유담관 524호",
+      "연구실 전화번호 : 02-940-7829",
+      "이메일: hsm1111@skuniv.ac.kr"
+     ],
+     "name": "허성민",
+     "retired": false,
+     "section": "코스메틱뷰티매니지먼트학과"
+    },
+    {
+     "lines": [
+      "초빙교수",
+      "전공분야 : 뷰티산업론, 마케팅",
+      "이메일: apogee7575@gmail.com"
+     ],
+     "name": "이중섭",
+     "retired": false,
+     "section": "코스메틱뷰티매니지먼트학과"
+    },
+    {
+     "lines": [
+      "초빙교수",
+      "전공분야 : 경영전략, 마케팅, 브랜딩",
+      "이메일: KKumida101@skuniv.ac.kr"
+     ],
+     "name": "홍재영",
+     "retired": false,
+     "section": "코스메틱뷰티매니지먼트학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "전공분야 : 약리학, 화장품기획&개발, 소비재 마케팅",
+      "이메일: i1004ym@skuniv.ac.kr"
+     ],
+     "name": "최유미",
+     "retired": false,
+     "section": "코스메틱뷰티매니지먼트학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "약학 박사",
+      "전공분야 : 맞춤형화장품, 화장품학특론",
+      "이메일: shhan203@naver.com"
+     ],
+     "name": "정혜진",
+     "retired": false,
+     "section": "코스메틱뷰티매니지먼트학과"
+    },
+    {
+     "lines": [
+      "조교수/학과장",
+      "미용예술학 박사",
+      "전공분야 : 페이셜트리트먼트,피부학, 아로마테라피, 화장품학",
+      "연구실: 유담관 517호",
+      "연구실 전화번호 : 02 940-7811",
+      "e mail : srchoi@skuniv.ac.kr"
+     ],
+     "name": "최수린",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "부교수/미용예술대부학장",
+      "디자인학 박사",
+      "전공분야 : 뷰티&패션메이크업, 이미지메이킹, 색채학",
+      "연구실: 유담관 516호",
+      "연구실 전화번호 : 02 940-7812",
+      "이메일: syshin@skuniv.ac.kr"
+     ],
+     "name": "신세영",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "초빙교수",
+      "보건학 박사",
+      "전공분야 : 피부미용, 메디컬스킨케어",
+      "이메일: sun023377@skuniv.ac.kr"
+     ],
+     "name": "전선영",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "초빙교수",
+      "미용예술학 박사",
+      "전공분야 : 화장품학, DIY코스메틱, 공중보건, 피부과학",
+      "이메일: chayumi@skuniv.ac.kr"
+     ],
+     "name": "차유미",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "초빙교수",
+      "미용예술학 석사",
+      "전공분야 : 살롱 트리트먼트, 아로마테라피, 뷰티트레이닝",
+      "이메일: joyful@skuniv.ac.kr"
+     ],
+     "name": "이영아",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미용예술학 박사",
+      "전공분야 : 화장품학, 메디컬스킨케어, CIDESCO, 발반사학, 뱀부테라피",
+      "이메일: jhrroon@skuniv.ac.kr"
+     ],
+     "name": "장혜륜",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미용예술학 박사",
+      "전공분야 : 네일미용, 네일아트",
+      "이메일: s90830@skuniv.ac.kr"
+     ],
+     "name": "신은영",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "이학 박사 수료",
+      "전공분야 : 미용해부생리학, 피부학, 화장품 제조",
+      "이메일: sth951107 @skuniv.ac.kr"
+     ],
+     "name": "신태현",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미용예술학 박사",
+      "전공분야 : 바디테라피, 메디컬스킨케어, CIDESCO",
+      "이메일: eunhee01 @skuniv.ac.kr"
+     ],
+     "name": "박은희",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미용예술학 박사",
+      "전공분야 : 피부미용, 바디테라피, CIDESCO",
+      "이메일: uunkkk @skuniv.ac.kr"
+     ],
+     "name": "강유나",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미용예술학 박사",
+      "전공분야 : 코스메틱, 마케팅",
+      "이메일: uwjd8882@skuniv.ac.kr"
+     ],
+     "name": "이유정",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "겸임 교수",
+      "예술학 박사",
+      "전공분야 : 피부(제모), 세미퍼머넌트, 뷰티&패션 메이크업",
+      "이메일: jinaa1@skuniv.ac.kr"
+     ],
+     "name": "백진아",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미용예술학 박사",
+      "전공분야 : 피부미용, 뷰티테라피, 아로마테라피, 근육학, CIDESCO",
+      "이메일: limchae1@skuniv.ac.kr"
+     ],
+     "name": "임채원",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "미용예술학 박사",
+      "전공분야 : 메디컬 스킨케어, 피부미용, 기기학",
+      "이메일: aud1311@skuniv.ac.kr"
+     ],
+     "name": "김명주",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "경영학 박사",
+      "전공분야 : 뷰티경영, 한국형 테라피, 아로마테라피",
+      "이메일: mul775@skuniv.ac.kr"
+     ],
+     "name": "김수정",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "미용예술학 박사",
+      "전공분야 : 메디컬스킨케어,피부미용",
+      "이메일: hy4008@skuniv.ac.kr"
+     ],
+     "name": "이희영",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "미용예술학 석사",
+      "전공분야 : 제모, 피부관리, 네일",
+      "이메일: syo45646@skuniv.ac.kr"
+     ],
+     "name": "성은수",
+     "retired": false,
+     "section": "글로벌뷰티테라피&코스메틱학과"
+    },
+    {
+     "lines": [
+      "부교수/학과장",
+      "미용예술학 박사",
+      "전공분야 : 뷰티&패션메이크업, 아트메이크업, 뷰티일러스트레이션",
+      "연구실 : 유담관 515호",
+      "연구실 전화번호 : 02-940-7828",
+      "이메일: youngjj@skuniv.ac.kr"
+     ],
+     "name": "주영주",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "부교수",
+      "이학박사, HRD박사",
+      "전공분야 : 피부학,인체해부생리학, 화장품학, 뷰티케어, 아로마&향료학",
+      "연구실 : 유담관 527호",
+      "연구실 전화번호 : 02 940-7821",
+      "이메일: sara0502@skuniv.ac.kr"
+     ],
+     "name": "김주연",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "부교수",
+      "이학 박사",
+      "전공분야 : 에어브러쉬&뮤지컬메이크업, 특수분장, 스페셜&판타지메이크업",
+      "연구실 : 유담관 512호",
+      "연구실 전화번호 : 02 940-7818",
+      "이메일: semakeup@skuniv.ac.kr"
+     ],
+     "name": "임희경",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "조교수",
+      "미용예술학 박사",
+      "전공분야 : 뷰티메이크업, 웨딩메이크업",
+      "연구실 : 유담관 518호",
+      "연구실 전화번호 : 02 940-7840",
+      "이메일: y63910456@skuniv.ac.kr"
+     ],
+     "name": "지연",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "겸임교수",
+      "전공분야 : 메이크업, 뷰티&아트메이크업",
+      "이메일: shflyjr@skuniv.ac.kr"
+     ],
+     "name": "노보경",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "미용예술학 석사",
+      "전공분야 : 뷰티메이크업, 패션&영상 메이크업",
+      "이메일: corudqk@skuniv.ac.kr"
+     ],
+     "name": "박채경",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "미용예술학 박사",
+      "전공분야 : 네일아트, 네일 살롱 테크닉",
+      "이메일: artix41@skuniv.ac.kr"
+     ],
+     "name": "강세영",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "미용예술학 박사",
+      "전공분야 : 패션 메이크업, 미용 색채학",
+      "이메일: hj3422@skuniv.ac.kr"
+     ],
+     "name": "김현진",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "미용예술학 박사",
+      "전공분야 : 뷰티&패션메이크업, 이미지메이킹",
+      "이메일: rin921@skuniv.ac.kr"
+     ],
+     "name": "황금빛누리",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "미용예술학 석사",
+      "전공분야 : 세미퍼머넌트메이크업",
+      "이메일: dpfIs6759@skuniv.ac.kr"
+     ],
+     "name": "이예린",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "미용예술학 석사",
+      "전공분야 : 뷰티 일러스트, 아트 메이크업",
+      "이메일: njw0903@skuniv.ac.kr"
+     ],
+     "name": "남정원",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "미용예술학 박사",
+      "전공분야 : 헤어스타일링, 업스타일디자인",
+      "이메일: choija@skuniv.ac.kr"
+     ],
+     "name": "최진아",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "미용예술학 석사",
+      "전공분야 : 헤어사이언스, 헤어트렌드, 트렌드스타일링",
+      "이메일: xeuuunp@skuniv.ac.kr"
+     ],
+     "name": "조상은",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "미용예술학 박사",
+      "전공분야 : 헤어 커트, 퍼머넌트웨이브",
+      "이메일: silk0810@skuniv.ac.kr"
+     ],
+     "name": "홍비단",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    },
+    {
+     "lines": [
+      "강의교수",
+      "미용예술학 석사",
+      "전공분야 : 업스타일, 헤어 커트 디자인",
+      "이메일: silk0810@skuniv.ac.k"
+     ],
+     "name": "태원주",
+     "retired": false,
+     "section": "글로벌 헤어&메이크업디자인학과"
+    }
+   ]
+  },
+  "https://en.skuniv.ac.kr/en_professor": {
+   "departments": [
+    "전자컴퓨터공학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "전공분야 : 컴퓨터비전, 인공지능, 로봇, 제어",
+      "연구실 : 북악관 304호 (Lab : 307호) / 02-940-7734",
+      "이메일: ksseo@skuniv.ac.kr",
+      "홈페이지 : http://intlab.skuniv.ac.kr"
+     ],
+     "name": "서기성",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "대외협력부총장",
+      "전공분야 : 분산시스템",
+      "연구실 : 본관 기획처, 북악관301호 / 02-940-7006",
+      "이메일: june@skuniv.ac.kr"
+     ],
+     "name": "김 준",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "이공대학장",
+      "전공분야: 공개키 암호알고리즘, 암호프로토콜 응용",
+      "연구실: 북악관 503호/ 02-940-7742",
+      "이메일: trpark@skuniv.ac.kr"
+     ],
+     "name": "박 태룡",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야: 빅데이터, 웹프로그래밍, 모바일 프로그래밍, 전산 통계",
+      "연구실: 북악관 501호/ 02-940-7740",
+      "이메일: statsr@skuniv.ac.kr"
+     ],
+     "name": "김재현",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야: 마이크로프로세서,임베디드 시스템, 임베디드 인공지능",
+      "연구실: 북악관 510호/ 02-940-7745",
+      "이메일: kylee@skuniv.ac.kr"
+     ],
+     "name": "이광엽",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야: 멀티미디어시스템",
+      "연구실: 북악관 514호/ 02-940-7748",
+      "이메일: cslim@skuniv.ac.kr"
+     ],
+     "name": "임철수",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야: 데이터베이스, 정보보안",
+      "연구실: 북악관 502호/ 02-940-7741",
+      "이메일: syl@skuniv.ac.kr"
+     ],
+     "name": "손용락",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : Digital Logic Design & Testing, Microcomputer",
+      "연구실 : 북악관 302호 / 02-940-7732",
+      "이메일: jjmo@skuniv.ac.kr"
+     ],
+     "name": "정준모",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 실시간 미들웨어, 전력정보망, 프로토콜 엔지니어링",
+      "연구실 : 북악관 312호 (Lab : 313호) / 02-940-7739",
+      "이메일: bksong@skuniv.ac.kr",
+      "홈페이지 : cafe.naver.com/skpin"
+     ],
+     "name": "송병권",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : software programing, computing statistics",
+      "연구실 : 북악관 303호 / 02-940-7733",
+      "이메일: swlee@skuniv.ac.kr"
+     ],
+     "name": "이승우",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 전파공학",
+      "연구실 : 북악관 311호 / 02-940-7738",
+      "이메일: ycchung@skuniv.ac.kr"
+     ],
+     "name": "정연춘",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전자컴퓨터공학과장/ 컴퓨터공학과장/ 전자공학과장/",
+      "전공 : 통신이론 및 시스템, 네트워크 품질",
+      "연구실 : 북악관 305호 / 02-940-7735",
+      "이메일: jylee@skuniv.ac.kr"
+     ],
+     "name": "이주영",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야: 컴퓨터그래픽스",
+      "연구실: 북악관 506호/ 02-940-7744",
+      "이메일: tykim@skuniv.ac.kr"
+     ],
+     "name": "김태영",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "학술정보관장",
+      "전공분야: 로봇 및 지능제어시스템",
+      "연구실: 북악관 515호/ 940 7749",
+      "이메일: ywcho@skuniv.ac.kr"
+     ],
+     "name": "조영완",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야: SoC, 임베디드시스템",
+      "연구실: 북악관 709호/ 02-940-7667",
+      "이메일: namkh@skuniv.ac.kr"
+     ],
+     "name": "남기훈",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야: 분산시스템, 이동컴퓨터링, 클라우드컴퓨팅",
+      "연구실: 한림관 1215호/ 02-940-7743",
+      "이메일: daelee@skuniv.ac.kr"
+     ],
+     "name": "이대원",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 차세대 디지털 집적회로",
+      "연구실 : 북악관 314-A호 / 02-940-7730",
+      "이메일: choroot@skuniv.ac.kr"
+     ],
+     "name": "조근호",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 인공지능(딥러닝/머신러닝), 컴퓨터비전, 임배디드시스템",
+      "연구실 : 한림관 1215호 /",
+      "이메일: sbroh1@skuniv.ac.kr"
+     ],
+     "name": "노석범",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 인공지능 / 컴퓨터 비전 / 홀로그램",
+      "연구실 : 유담관 1522호 / 02-940-2927",
+      "이메일: daeyeon@skuniv.ac.kr"
+     ],
+     "name": "김대연",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 3D / 실감콘텐츠 / 홀로그램",
+      "연구실 : 유담관 1528호 /",
+      "이메일: bhogil@skuniv.ac.kr"
+     ],
+     "name": "백호길",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "정보전산원장",
+      "전공분야 : 스마트그리드, 네트워크통신",
+      "연구실 : 북악관 310호/",
+      "이메일: wiz@skuniv.ac.kr"
+     ],
+     "name": "김용성",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 지능형 판독 시스템, 센서 인터페이스, 아날로그 회로, 집적회로, 데이터변환기 설계",
+      "연구실 : 한림관 1412호/ 02-940-7443",
+      "이메일: ankyungchan@skuniv.ac.kr"
+     ],
+     "name": "안경찬",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "명예교수",
+      "찾아가는 학교 컨설팅 사업단장",
+      "전공분야 : 음성처리, 영상처리, 신호처리",
+      "연구실 : 유담관 1609호",
+      "이메일: smkang@skuniv.ac.kr"
+     ],
+     "name": "강선미",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "명예교수",
+      "전공분야 : 아날로그회로설계, 집적회로 설계, 데이터변환기 설계, 생체 신호처리 회로설계",
+      "이메일: silim@skuniv.ac.kr"
+     ],
+     "name": "임신일",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "명예교수",
+      "전공분야: 프로그래밍 언어 및 가상기계, 게임 기술가치 평가모델 및 게임엔진",
+      "이메일: yslee@skuniv.ac.kr",
+      "홈페이지: http://pl.skuniv.ac.kr/xe/"
+     ],
+     "name": "이양선",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "명예교수",
+      "전공분야: 디지털영상처리 및 시스템",
+      "연구실: 북악관 513호/ 02-940-7747",
+      "이메일: jinheon@skuniv.ac.kr"
+     ],
+     "name": "김진헌",
+     "retired": false,
+     "section": "교수진소개"
+    }
+   ]
+  },
+  "https://fi.skuniv.ac.kr/fi_professor": {
+   "departments": [
+    "금융정보공학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학과장 / 부 교수",
+      "학위명 : 경영학박사",
+      "전공분야 : 부동산금융/부동산투자분석",
+      "연구실 : 유담관 1503호 / 02-940-2912",
+      "이메일: mst0709@skuniv.ac.kr"
+     ],
+     "name": "송인규",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "인사처장 / 부 교수",
+      "학위명 : 경영학박사",
+      "전공분야 : 금융상품/금융수학",
+      "연구실 : 한림관 808호 / 02-940-7519",
+      "처장실 : 본관 7층 / 02-940-7003",
+      "이메일: cfpjun@skuniv.ac.kr"
+     ],
+     "name": "함형준",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "부 교수",
+      "학위명 : 이학박사",
+      "전공분야 : 금융모델링/빅데이터분석",
+      "연구실 : 한림관 1415호 / 02-940-7446",
+      "이메일: choan@skuniv.ac.kr"
+     ],
+     "name": "안창호",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조 교수",
+      "학위명 : 경영학박사",
+      "전공분야 : 신용분석 / 재무관리",
+      "연구실 : 한림관 904호 / 02-940-7408",
+      "이메일: moneymst@skuniv.ac.kr"
+     ],
+     "name": "서기수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "부 교수",
+      "학위명 : 소비자학박사 / 국제공인재무설계사(CFP)",
+      "전공분야 : 재무설계 / 자산관리",
+      "연구실 : 한림관 1013호 / 02-940-7492",
+      "이메일: smilecfp@skuniv.ac.kr"
+     ],
+     "name": "박원주",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조교수",
+      "학위명 : 경영학박사",
+      "전공분야 : 금융공학/파생상품",
+      "연구실 : 한림관 1010호 / 02-940-7489",
+      "이메일: angelyskim@skuniv.ac.kr"
+     ],
+     "name": "김영성",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "겸임 교수",
+      "(주)커리어빅 대표이사",
+      "전공분야 : 금융NCS / 금융시사논술",
+      "이메일: seh0001@naver.com"
+     ],
+     "name": "석의현",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://ls.skuniv.ac.kr/ls_professor": {
+   "departments": [
+    "물류시스템공학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학과장/교수",
+      "연구분야 : 물류경영, 공급사슬경영",
+      "담당과목 : SCM(Supply Chain Management), 경제성분석",
+      "연구실 : 북악관 701호 / 02-940-7761",
+      "이메일: skuie@naver.com"
+     ],
+     "name": "고현우",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "연구분야 : OR, 물류시스템분석",
+      "담당과목 : 선형계획법, OR",
+      "연구실 : 북악관 705호 / 02-940-7765",
+      "이메일: jai@primpo.com",
+      "홈페이지 : http://www.primpo.com"
+     ],
+     "name": "김재현",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "학과장/교수",
+      "연구분야 : 공급사슬경영(SCM), Modeling & Simulation",
+      "담당과목 : 물류관리론, 화물운송론, 물류통계",
+      "연구실 : 북악관 703호 / 02-940-7763",
+      "이메일: yhsohn@skuniv.ac.kr"
+     ],
+     "name": "손영환",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "연구분야 : 제품개발(6시그마 & DFSS), 다구찌실험계획법, 품질관리",
+      "담당과목 : 물류서비스품질실무, 창의공학설계",
+      "연구실 : 한림관 1509호 / 02-940-7424﻿",
+      "이메일: jeesyn@daum.net"
+     ],
+     "name": "지수윤",
+     "retired": false,
+     "section": "교수진소개"
+    }
+   ]
+  },
+  "https://mu.skuniv.ac.kr/mu_professor": {
+   "departments": [
+    "음악학부"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학부장/부교수",
+      "전공분야 : 오케스트라 지휘 / Clarinet",
+      "연구실 : 문예관 1001호 / 02-940-7700",
+      "이메일: knkcla@hanmail.net"
+     ],
+     "name": "김낙구",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "전공분야 : 연주 / Violin",
+      "연구실 : 문예관 1006호 / 02-940-7700",
+      "이메일: wkcho22@dreamwiz.com"
+     ],
+     "name": "조원경",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "전공분야 : 연주 / 반주 / Piano",
+      "연구실 : 문예관 1004호 / 02-940-7700",
+      "이메일: pianozz@naver.com"
+     ],
+     "name": "김희균",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조교수",
+      "전공분야 : 현악합주 / Cello",
+      "연구실 : 문예관 904호 / 02-940-7700",
+      "이메일: dongillee99@hanmail.net"
+     ],
+     "name": "이동일",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조교수",
+      "전공분야 : 관악 / Bass Trombone",
+      "연구실 : 문예관 1003호 / 02-940-7700",
+      "이메일: cyskim@hotmail.com"
+     ],
+     "name": "ChristopherKim",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조교수",
+      "전공분야 : 작곡 / 이론",
+      "연구실 : 한림관 807호",
+      "이메일: moonchoo5@naver.com"
+     ],
+     "name": "오문주",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조교수",
+      "전공분야 : Viola / 실내악",
+      "연구실 : 문예관 1004호",
+      "이메일: gemini554@naver.com"
+     ],
+     "name": "박성자",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "조교수",
+      "전공분야 : Piano / 앙상블",
+      "연구실 : 문예관 902호",
+      "이메일: joyceoh@nate.com"
+     ],
+     "name": "오영란",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "특임교수",
+      "전공분야 : Vioin",
+      "이메일: borakang@me.com"
+     ],
+     "name": "강보라",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "특임교수",
+      "전공분야 : Violin",
+      "이메일: yoseip.uhm@gamil.com"
+     ],
+     "name": "엄요셉",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "특임교수",
+      "전공분야 : Percussion",
+      "이메일: geons7@hanmail.net"
+     ],
+     "name": "윤건상",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "특임교수",
+      "전공분야 : Violin",
+      "이메일: endless627@naver.com"
+     ],
+     "name": "박병석",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "특임교수",
+      "전공분야 : Piano",
+      "이메일: cultureon_2017@naver.com"
+     ],
+     "name": "김용진",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://ne.skuniv.ac.kr/ne_professor": {
+   "departments": [
+    "나노화학생명공학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "연구분야 : 고분자 전자재료",
+      "연구실 : 한림관 1112호 / 02-940-7167",
+      "이메일: whgunkim@skuniv.ac,kr"
+     ],
+     "name": "김환건 교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 실내공기질, 대기오염, 인체위해성평가",
+      "연구실 : 유담관 1501호 / 02-940-2924",
+      "이메일: cheolmin@skuniv.ac.kr"
+     ],
+     "name": "이철민 교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 재료공학/바이오마이크로시스템공학",
+      "연구실 : 유담관 1518호 / 02-940-2923",
+      "이메일: jonghoonkim@skuniv.ac.kr"
+     ],
+     "name": "김종훈 부교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : ICT환경융합시스템",
+      "연구실 : 유담관 1524호 / 02-940-7414",
+      "이메일: ho04sh@skuniv.ac.kr"
+     ],
+     "name": "김호현 부교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 화학물질 환경동태, 탄소중립, 수처리",
+      "연구실 : 유담관 1508호 / 02-940-2924",
+      "이메일: ecopresent@skuniv.ac.kr"
+     ],
+     "name": "김희석 부교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 환경보건, 산업보건, 실내공기질(부유미생물, 에어로졸, 라돈 등), 환경정책 등",
+      "연구실 : 유담관 1505호 / 02-940-2914",
+      "이메일: haha0694@skuniv.ac.kr"
+     ],
+     "name": "서성철 부교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 자연 매체 중 화학물질의 fate and transport 및 data analytics",
+      "연구실 : 유담관 1504호 / 02-940-2913",
+      "이메일: ss5372@skuniv.ac.kr"
+     ],
+     "name": "윤성원 부교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 환경/기후변화 유발물질, 측정분석 및 기후변화 감축 기술",
+      "연구실 : 유담관 1506호",
+      "이메일: emjilee@skuniv.ac.kr"
+     ],
+     "name": "이정일 부교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 화학생명공학 산업 응용",
+      "연구실 : 유담관 1523호 / 02-940-2928",
+      "이메일: neworder@skuniv.ac.kr"
+     ],
+     "name": "조용민 부교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 유해화학물질 급·만성 건강영향 및 안전보건관리",
+      "연구실 : 유담관 1507호 / 02-940-2916",
+      "이메일: yscho72@skuniv.ac.kr"
+     ],
+     "name": "조용성 부교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 세포 기반 오믹스 분석, 독성발현경로구축, 환경보건 연구정보 구축, QSAR 모델링",
+      "연구실 : 유담관 1509호 / 02-940-2918",
+      "이메일: eunmin@skuniv.ac.kr"
+     ],
+     "name": "조은민 부교수/학과장",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 전기화학, 바이오센서, 생물화공",
+      "연구실 : 한림관 1005호 / 02-940-7484",
+      "이메일: mjsong@skuniv.ac.kr"
+     ],
+     "name": "송민정 부교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 해양오염, 연안생태계, 퇴적물위해성평가, 저서생물모니터링, 수질예측",
+      "연구실 : 유담관 1522호",
+      "이메일: jsryu90@gmail,com"
+     ],
+     "name": "류종성 부교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 폐기물처리 및 환경에너지",
+      "연구실 : 유담관 1509호",
+      "이메일: biwaco@skuniv.ac.kr"
+     ],
+     "name": "박용진 부교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 해양환경, 해양(부유)생태, 생태계위해성평가",
+      "연구실 : 유담관 1518호",
+      "이메일: mjoonsea@skuniv.ac.kr"
+     ],
+     "name": "이무준 부교수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "연구분야 : 화학사고 건강영향평가, 인체위해성평가",
+      "연구실 : 유담관 1513호",
+      "이메일: shp8880@skuniv.ac.kr"
+     ],
+     "name": "박시현 연구교수",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://pr.skuniv.ac.kr/pr_professor": {
+   "departments": [
+    "공공인재학부"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학위명 : 법학박사",
+      "전공분야 : 민법",
+      "연구실 전화번호 : 02-940-7111",
+      "이메일: yoon@skuniv.ac.kr"
+     ],
+     "name": "윤의섭",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 행정학박사",
+      "전공분야 : 재무행정/환경행정",
+      "연구실 전화번호 : 02-940-7223",
+      "이메일: cycle21@naver.com"
+     ],
+     "name": "김정훈",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 법학박사",
+      "전공분야 : 헌법, 헌법소송법, 개인정보보호법",
+      "연구실 전화번호 : 02-940-7485",
+      "이메일: joon1842@skuniv.ac.kr"
+     ],
+     "name": "이준복",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 법학박사",
+      "전공분야 : 행정법, 경찰법, 규제법",
+      "연구실 전화번호 : 02-940-7169",
+      "이메일: lawyer777@hanmail.net"
+     ],
+     "name": "성봉근",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 법학박사",
+      "전공분야 : 환경법, 민법, 행정법",
+      "연구실 전화번호 : 02-940-7482",
+      "이메일: wildhorse9@hanmail.net"
+     ],
+     "name": "이순자",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 정치학박사",
+      "전공분야 : 정당, 의회, 선거",
+      "연구실 전화번호 : 02-940-7403",
+      "이메일: 415han@naver.com"
+     ],
+     "name": "한기영",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 박사수료(교육학)",
+      "전공분야 : 지역사회교육, 자치분권, 로컬디자인",
+      "연구실 전화번호 : 02-940-7404",
+      "이메일: phronesis71080@gmail.com"
+     ],
+     "name": "김보람",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 행정학박사",
+      "전공분야 : 정책학/도시행정",
+      "이메일: ych5534@naver.com"
+     ],
+     "name": "임성은",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 행정학석사",
+      "전공분야 : 정책학",
+      "이메일: yjb1979@daum.net"
+     ],
+     "name": "윤정배",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 법학석사/변호사",
+      "전공분야 : 경찰학개론, 형사법",
+      "이메일: manstein77@naver.com"
+     ],
+     "name": "김운용",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 법학석사",
+      "전공분야 : 민법",
+      "이메일: pkh22c@hanmail.net"
+     ],
+     "name": "박기현",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 석사수료(한국사)",
+      "전공분야 : 공무원국사",
+      "이메일: hanguksa@daum.net"
+     ],
+     "name": "박용선",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 공무원영어",
+      "이메일: hyunahvirus@naver.com"
+     ],
+     "name": "전현아",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "전공분야 : 공무원국어",
+      "이메일: lyj4718@hanmail.net"
+     ],
+     "name": "강경욱",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://sm.skuniv.ac.kr/sm_professor": {
+   "departments": [
+    "군사학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학위명 : 행정학박사",
+      "연구분야 : 국가정보학, 테러리즘",
+      "연구실 : 본관 610호/ 02-940-7142",
+      "이메일: yeomul@hanmail.net"
+     ],
+     "name": "채성준",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 정치학박사",
+      "연구분야 : 국가안보, 군사과학기술",
+      "연구실 : 본관 603호/ 02-940-7894",
+      "이메일: didgotn@hanmail.net"
+     ],
+     "name": "양해수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 경영학박사",
+      "연구분야 : 국방경영, 국방정책",
+      "연구실 : 본관 604호 / 02-940-7896",
+      "이메일: jeong25091@naver.com"
+     ],
+     "name": "정희태",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 행정학석사, 전 해병대사령관",
+      "연구분야 : 안보정책, 군사행정",
+      "연구실 : 본관 610호 / 02-940-7141",
+      "이메일: buddajun@hanmail.net"
+     ],
+     "name": "전진구",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 군사학박사",
+      "연구분야 : 병역제도, 군인/군무원 인재선발획득, 미래전쟁, 군수/방위산업학",
+      "연구실 : 본관 502호 / 02-940-7128",
+      "이메일: ssunt@daum.net"
+     ],
+     "name": "황선호",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 정책학박사",
+      "연구분야 : 국가동원관리, 민군관계",
+      "연구실 : 본관 608호 / 02-940-7140",
+      "이메일: kma49ljh@hanmail.net"
+     ],
+     "name": "이정희",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 전자공학박사",
+      "연구분야 : 우주항공, 무기체계",
+      "연구실 : 본관 610호 / 02-940-7141",
+      "이메일: cho2025b@naver.com"
+     ],
+     "name": "조병호",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 공공행정학, 아태지역학석사",
+      "연구분야 : 국방과학기술, 국가안보전략",
+      "연구실 : 본관610호 / 02-940-7141",
+      "이메일: dongyoun@skuniv.ac.kr"
+     ],
+     "name": "조동연",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 경영학박사",
+      "연구분야 : 국방전략 분야",
+      "연구실 : 한림관910호 / 02-940-7141",
+      "이메일: ays@skuniv.ac.kr"
+     ],
+     "name": "안영수",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 외교안보학박사",
+      "연구분야 : 외교안보, 무기체계",
+      "연구실 : 본관 610호 / 02-940-7141",
+      "이메일: aegis0412@hotmail.com"
+     ],
+     "name": "윤상용",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://spte.skuniv.ac.kr/spte_professor": {
+   "departments": [
+    "스포츠앤테크놀로지학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학과장 / 부 교수",
+      "학위 : 체육학박사",
+      "전공분야 : 운동처방 및 건강관리, 운동영양",
+      "연구실 : 한림관 1002호",
+      "Tel : 02-940-7108",
+      "이메일: riew14@skuniv.ac.kr"
+     ],
+     "name": "류일서",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "부 교수",
+      "학위 : 이학박사",
+      "전공분야 : 레저산업, 골프",
+      "연구실 : 유담관 서경스포렉스 501호",
+      "Tel : 02-930-7355",
+      "이메일: golfjh@skuniv.ac.kr"
+     ],
+     "name": "김재환",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "부 교수",
+      "학위 : 이학박사",
+      "전공분야 : 스포츠산업, 데이터분석",
+      "연구실 : 본관 523호",
+      "Tel : 02-940-7447",
+      "이메일: jkshin@skuniv.ac.kr"
+     ],
+     "name": "신재광",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "부 교수",
+      "학위 : 물리치료학박사, 이학박사",
+      "전공분야 : 신경계물리치료학, 운동역학",
+      "연구실 : 유담관 1517호",
+      "Tel : 02-940-2922",
+      "이메일: gracelim @skuniv.ac.kr"
+     ],
+     "name": "임희성",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "부 교수",
+      "학위 : 이학박사",
+      "전공분야 : 스포츠의학, 인공지능헬스케어",
+      "연구실 : 한림관 1202호",
+      "Tel : 02-940-7210",
+      "이메일: younal@skuniv.ac.kr"
+     ],
+     "name": "김알찬",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "부 교수",
+      "학위 : 체육학박사",
+      "전공분야 : 스포츠경영, 스키",
+      "연구실 : 한림관 813호",
+      "Tel : 02-940-7188",
+      "이메일: rayski@skuniv.ac.kr"
+     ],
+     "name": "양성철",
+     "retired": false,
+     "section": "교수진소개"
+    },
+    {
+     "lines": [
+      "조 교수",
+      "학위 : 체육학박사",
+      "전공분야 : 운동역학, 데이터 분석, 스포츠테크",
+      "연구실 : 유담관 1605호",
+      "Tel : 02-940-7924",
+      "이메일: lysorlys@skuniv.ac.kr"
+     ],
+     "name": "이영성",
+     "retired": false,
+     "section": "교수진소개"
+    }
+   ]
+  },
+  "https://td.skuniv.ac.kr/td_professor": {
+   "departments": [
+    "영화영상학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "교수",
+      "학위명 : 한양대학교 인문대학 연극영화학과 학사 / San Francisco Art Institute 영화제작전공 예술학실기석사 (M.F.A.) / 한양대학교 일반대학원 연극영화학과 영화학박사 (Ph. D)",
+      "전공분야 : 영화제작, 영화이론",
+      "연구실 전화번호 : 02-940-7143",
+      "이메일: myjang@skuniv.ac.kr"
+     ],
+     "name": "장민용",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "학위명 : 서울대학교 동물자원학과(학사) / 한양대학교 대학원 연극영화학과(석사) / 한양대학교 대학원 연극영화학과(박사 수료)",
+      "전공분야 : 영화 드라마 기획, 스토리텔링, 시나리오",
+      "이메일: jkim5351@skuniv.ac.kr"
+     ],
+     "name": "김의준",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "학위명 : 서경대학교 예술대학 영화학사 / 위스콘신주립대학 밀워키 영화제작전공 예술학실기석사 (M.F.A.)",
+      "전공분야 : 영화제작, 영화연출",
+      "연구실 전화번호 : 02-940-7129",
+      "이메일: junehyuckjeon@skuniv.ac.kr"
+     ],
+     "name": "전준혁",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "학위명 : 한양대학교 인문대학 연극영화학과 학사 / 한양대학교 인문대학 연극영화학 대학원 통합과정",
+      "전공분야 :영화 기획/제작, 영화 투자/배급 등 비지니스, 콘텐츠 IP 개발 및 트랜스미디어콘텐츠 제작, 스토리텔링",
+      "이메일: eyoh@skuniv.ac.kr"
+     ],
+     "name": "오은영",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "초빙교수",
+      "학위명 : 경희대학교 음악대학 기악과 첼로전공 학사 / Berkeley College of Music Diploma",
+      "전공분야 : 사운드 디자인, MIDI, 레코딩 엔지니어",
+      "연구실 전화번호 : 02-940-7426",
+      "이메일: scottie00@naver.com"
+     ],
+     "name": "이승택",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://tf.skuniv.ac.kr/tf_professor": {
+   "departments": [
+    "공연예술학부"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학위명 : MA in Theatre Arts (연극예술학 석사, 뉴욕주립 대학교)",
+      "전공분야 : 연기",
+      "연구실 전화번호 : 02-940-7419",
+      "이메일: nextdada@skuniv.ac.kr"
+     ],
+     "name": "김용준",
+     "retired": false,
+     "section": ""
+    },
+    {
+     "lines": [
+      "학위명 : 성균관대학교 공연예술학 석사",
+      "전공분야 : 무용, 연기",
+      "연구실 : 북악관 805호",
+      "연구실 전화번호 : 02-940-7246",
+      "이메일: dolorosa66@hanmail.net"
+     ],
+     "name": "백경희",
+     "retired": false,
+     "section": ""
+    },
+    {
+     "lines": [
+      "학위명 : 한국외국어대학교 경영대학원 경영학 석사",
+      "전공분야 : 문화콘텐츠 제작",
+      "연구실 : 한림관 1516호",
+      "연구실 전화번호 : 02-940-7431",
+      "이메일: 1783sid@naver.com"
+     ],
+     "name": "김동원",
+     "retired": false,
+     "section": ""
+    }
+   ]
+  },
+  "https://ur.skuniv.ac.kr/ur_professor": {
+   "departments": [
+    "도시공학과"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학과장 / 교수",
+      "학위명 : 공학 박사",
+      "전공분야 : 교통계획, 교통공학, 통계",
+      "연구실 전화번호 : 02-940-2927",
+      "이메일: mmk514@skuniv.ac.kr"
+     ],
+     "name": "모무기",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "학위명 : 공학 박사",
+      "전공분야 : 도시계획, 도시정비, 도시관련법규",
+      "연구실 전화번호 : 02-940-7151",
+      "이메일: sjlee@skuniv.ac.kr"
+     ],
+     "name": "이승주",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "학위명 : 공학 박사",
+      "전공분야 : 도시계획, 경관계획, 주거환경",
+      "연구실 전화번호 : 02-940-7450",
+      "이메일: inhak@skuniv.ac.kr"
+     ],
+     "name": "김인하",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "학위명 : 도시 및 지역계획 박사",
+      "전공분야 : 환경계획, GIS",
+      "연구실 전화번호 : 02-940-7783",
+      "이메일: hagkim@skuniv.ac.kr"
+     ],
+     "name": "김학열",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "학위명 : 공학 박사",
+      "전공분야 : 조경계획, 경관계획",
+      "연구실 전화번호 : 02-940-7454",
+      "이메일: activetiger@skuniv.ac.kr"
+     ],
+     "name": "이동화",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "학위명 : 공학박사",
+      "전공분야 : 공간정보공학(지적, 육해상공간정보)",
+      "연구실 전화번호 : 02-940-7782",
+      "이메일: jm927k@skuniv.ac.kr"
+     ],
+     "name": "김재명",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "학위명 : 도시설계 박사 수료 / 조경학 석사",
+      "전공분야 : 도시설계(DUP&DCP), 경관계획",
+      "연구실 전화번호 : 02-940-7180",
+      "이메일: jaeswee@skuniv.ac.kr"
+     ],
+     "name": "위재송",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "학위명 : 공학박사(도시계획학)",
+      "전공분야 : 도시계획, 도시정비계획",
+      "연구실 전화번호 : 02-940-7407",
+      "이메일: osimson@skuniv.ac.kr"
+     ],
+     "name": "심경석",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "학위명 : 공학 석사",
+      "전공분야 : 도시정비계획, 정비사업계획",
+      "연구실 전화번호 : 02-940-7489",
+      "이메일: kcmd77@skuniv.ac.kr"
+     ],
+     "name": "김병춘",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "교수",
+      "학위명 : 공학박사 수료",
+      "전공분야 : 도시관리, 도시경영",
+      "이메일: munhongseon0@gmail.com"
+     ],
+     "name": "문홍선",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  },
+  "https://vd.skuniv.ac.kr/vd_professor": {
+   "departments": [
+    "디자인학부"
+   ],
+   "professors": [
+    {
+     "lines": [
+      "학위명 : 디자인학박사",
+      "전공분야 : 공간 및 제품 스타일링 / 디스플레이",
+      "연구실 전화번호 : 02-940-7141",
+      "이메일: yoonsi@skuniv.ac.kr"
+     ],
+     "name": "윤수인",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 예술학박사",
+      "전공분야 : 커머셜포토/이미지프로세싱",
+      "연구실 전화번호 : 02-940-7134",
+      "이메일: sis@skuniv.ac.kr"
+     ],
+     "name": "서인숙",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 이학박사",
+      "전공분야 : 콘텐츠시스템디자인(인공지능, 블록체인, 게임, 3D)",
+      "연구실 전화번호 : 02-940-7136",
+      "이메일: multipia@skuniv.ac.kr",
+      "Homepage : http://www.dxpia.com"
+     ],
+     "name": "남현우",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 이학박사",
+      "전공분야 : 텍스타일 디자인(텍스타일 제품 스타일링 / 코디네이션)",
+      "연구실 전화번호 : 02-940-7137",
+      "이메일: aapjimin@skuniv.ac.kr"
+     ],
+     "name": "박혜신",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 디자인학박사",
+      "전공분야 : 상품 기획 및 디자인 (인테리어 상품)",
+      "연구실 전화번호 : 02-940-7138",
+      "이메일: jeankim123@skuniv.ac.kr"
+     ],
+     "name": "김지인",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 예술공학 박사",
+      "전공분야 : DX영상디자인, 모션그래픽, Media Art",
+      "연구실 전화번호 : 02-940-7135",
+      "이메일: sungdaehong@gmail.com"
+     ],
+     "name": "홍성대",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명: 미술학석사",
+      "전공분야: 브랜딩 및 패키지 디자인",
+      "연구실 전화번호: 02-940-7424",
+      "이메일: ga04008@skuniv.ac.kr"
+     ],
+     "name": "이가영",
+     "retired": false,
+     "section": "교수진 소개"
+    },
+    {
+     "lines": [
+      "학위명 : 이학박사",
+      "전공분야 : 아이텐티티/광고디자인기획실무",
+      "이메일: jaelee@skuniv.ac.kr"
+     ],
+     "name": "이재익",
+     "retired": false,
+     "section": "교수진 소개"
+    }
+   ]
+  }
+ }
+}

@@ -200,6 +200,13 @@
       "note": "학과 홈페이지·교수진 페이지 주소 — python scripts/refresh_contacts.py가 조직도 데이터에서 만듦(manual/department-sites.md)"
     },
     {
+      "slug": "professors",
+      "path": "/organization-phone",
+      "group": "조직도·전화번호",
+      "tier": 1,
+      "note": "학과 교수진 연락처 — python scripts/refresh_professors.py가 각 학과 교수진 페이지에서 만듦(manual/professors.md). 퇴임교수는 퇴임 사실만"
+    },
+    {
       "slug": "student-id",
       "path": "/student-id",
       "group": "대학생활·시설",
