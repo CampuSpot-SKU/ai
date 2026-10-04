@@ -16,6 +16,7 @@ dependencies = [
     "psycopg2-binary==2.9.13",
     "google-genai==2.25.0",     # Gemini API (Google AI Studio)
     "python-dotenv==1.2.3",
+    "beautifulsoup4==4.15.0",   # ai/page_scraper.py — 홈페이지 안내 페이지 본문 추출 (1-4a, 공지 수집 1-14도 사용)
 ]
 
 [tool.setuptools.packages.find]

@@ -1,0 +1,343 @@
+{
+  "_comment": "홈페이지 안내 페이지 수집 대상(1-4a). tier 1=학사안내 메뉴·FAQ 먼저, 2=대학생활·시설. 사이트맵에 더 있는 주소는 `--discover`로 찾아서 여기 추가. 외부 도메인은 robots 미확인이라 수집하지 않음. (대문·별칭 주소 — scholarships·courses-grades·student-records·student-exchange·faq·certificate·accademic-affairs·academics — 는 다른 페이지와 같은 내용이거나 메뉴뿐이라 뺌) 전체 자료실(resources)은 글 목록 게시판이라 안내 페이지가 아니라 공지처럼 REST로 수집(1-14). campus-map·campus-map-2·job-board는 지도 위젯·채용 게시판이라 뺌(건물 정보는 team-docs data/campus에 있음).",
+  "base_url": "https://www.skuniv.ac.kr",
+  "pages": [
+    {
+      "slug": "curriculum",
+      "path": "/curriculum",
+      "group": "교육과정",
+      "tier": 1
+    },
+    {
+      "slug": "minor-double-major",
+      "path": "/minor-double-major",
+      "group": "교육과정",
+      "tier": 1
+    },
+    {
+      "slug": "micro-degree-major",
+      "path": "/micro-degree-major",
+      "group": "교육과정",
+      "tier": 1
+    },
+    {
+      "slug": "microdegree-major-guide",
+      "path": "/microdegree-major-guide",
+      "group": "교육과정",
+      "tier": 1
+    },
+    {
+      "slug": "microdegree-major-qna",
+      "path": "/microdegree-major-qna",
+      "group": "교육과정",
+      "tier": 1
+    },
+    {
+      "slug": "microdegree-programs",
+      "path": "/microdegree-programs",
+      "group": "교육과정",
+      "tier": 1
+    },
+    {
+      "slug": "course-registration",
+      "path": "/course-registration",
+      "group": "수업·성적",
+      "tier": 1
+    },
+    {
+      "slug": "seasonal-sessions",
+      "path": "/seasonal-sessions",
+      "group": "수업·성적",
+      "tier": 1
+    },
+    {
+      "slug": "general-english",
+      "path": "/general-english",
+      "group": "수업·성적",
+      "tier": 1
+    },
+    {
+      "slug": "exam-and-grade",
+      "path": "/exam-and-grade",
+      "group": "수업·성적",
+      "tier": 1
+    },
+    {
+      "slug": "course-evaluations",
+      "path": "/course-evaluations",
+      "group": "수업·성적",
+      "tier": 1
+    },
+    {
+      "slug": "leave-and-return",
+      "path": "/leave-and-return",
+      "group": "학적",
+      "tier": 1
+    },
+    {
+      "slug": "leave",
+      "path": "/leave",
+      "group": "학적",
+      "tier": 1
+    },
+    {
+      "slug": "return",
+      "path": "/return",
+      "group": "학적",
+      "tier": 1
+    },
+    {
+      "slug": "academic-status",
+      "path": "/academic-status",
+      "group": "학적",
+      "tier": 1
+    },
+    {
+      "slug": "academic-warning",
+      "path": "/academic-warning",
+      "group": "학적",
+      "tier": 1
+    },
+    {
+      "slug": "dropout-expulsion",
+      "path": "/dropout-expulsion",
+      "group": "학적",
+      "tier": 1
+    },
+    {
+      "slug": "change-major-and-readmission",
+      "path": "/change-major-and-readmission",
+      "group": "학적",
+      "tier": 1
+    },
+    {
+      "slug": "change-major",
+      "path": "/change-major",
+      "group": "학적",
+      "tier": 1
+    },
+    {
+      "slug": "reinstatement",
+      "path": "/reinstatement",
+      "group": "학적",
+      "tier": 1
+    },
+    {
+      "slug": "graduation",
+      "path": "/graduation",
+      "group": "학적",
+      "tier": 1
+    },
+    {
+      "slug": "domestic-exchange",
+      "path": "/domestic-exchange",
+      "group": "학생교류",
+      "tier": 1
+    },
+    {
+      "slug": "international-exchange",
+      "path": "/international-exchange",
+      "group": "학생교류",
+      "tier": 1
+    },
+    {
+      "slug": "interchange_student_system",
+      "path": "/interchange_student_system",
+      "group": "학생교류",
+      "tier": 1
+    },
+    {
+      "slug": "partner_institutions_abroad",
+      "path": "/partner_institutions_abroad",
+      "group": "학생교류",
+      "tier": 1
+    },
+    {
+      "slug": "internal-scholarships",
+      "path": "/internal-scholarships",
+      "group": "장학",
+      "tier": 1
+    },
+    {
+      "slug": "scholarship-regulations",
+      "path": "/scholarship-regulations",
+      "group": "장학",
+      "tier": 1
+    },
+    {
+      "slug": "all-faq",
+      "path": "/all-faq",
+      "group": "FAQ·자료·증명",
+      "tier": 1,
+      "paginate": true,
+      "note": "게시판형(쪽 이동) — 모든 쪽을 따라가 Q/A로 저장"
+    },
+    {
+      "slug": "issuance",
+      "path": "/issuance",
+      "group": "FAQ·자료·증명",
+      "tier": 1
+    },
+    {
+      "slug": "academic-calendar",
+      "path": "/academic-calendar",
+      "group": "학사일정",
+      "tier": 1,
+      "note": "일정은 화면이 열린 뒤 구글 캘린더에서 채워짐 — 사람이 입력"
+    },
+    {
+      "slug": "organization-phone",
+      "path": "/organization-phone",
+      "group": "조직도·전화번호",
+      "tier": 1,
+      "note": "부서·전화번호는 화면이 열린 뒤 채워짐 — 사람이 입력"
+    },
+    {
+      "slug": "department-sites",
+      "path": "/organization-phone",
+      "group": "조직도·전화번호",
+      "tier": 1,
+      "note": "학과 홈페이지·교수진 페이지 주소 — python scripts/refresh_contacts.py가 조직도 데이터에서 만듦(manual/department-sites.md)"
+    },
+    {
+      "slug": "student-id",
+      "path": "/student-id",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "health-center",
+      "path": "/health-center",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "student-insurance",
+      "path": "/student-insurance",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "library",
+      "path": "/library",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "military-service",
+      "path": "/military-service",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "military",
+      "path": "/military",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "reserve-forces",
+      "path": "/reserve-forces",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "student-clubs",
+      "path": "/student-clubs",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "student-union",
+      "path": "/student-union",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "campus-life",
+      "path": "/campus-life",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "student-activities",
+      "path": "/student-activities",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "directions",
+      "path": "/directions",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "it-services",
+      "path": "/it-services",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "campus-network",
+      "path": "/campus-network",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "webmail",
+      "path": "/webmail",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "security",
+      "path": "/security",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "software",
+      "path": "/software",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "volunteer",
+      "path": "/volunteer",
+      "group": "대학생활·시설",
+      "tier": 2
+    },
+    {
+      "slug": "human-rights",
+      "path": "/human-rights",
+      "group": "대학생활·시설",
+      "tier": 2
+    }
+  ],
+  "external_links": [
+    {
+      "title": "대학원 학사일정",
+      "url": "https://grad.skuniv.ac.kr/academic_calendar"
+    },
+    {
+      "title": "융합전공",
+      "url": "https://multi.skuniv.ac.kr/"
+    },
+    {
+      "title": "수강신청",
+      "url": "https://s.skuniv.ac.kr/course/common/loginForm.do"
+    },
+    {
+      "title": "서경포탈",
+      "url": "https://sportal.skuniv.ac.kr"
+    },
+    {
+      "title": "증명서 발급",
+      "url": "https://www.certpia.com/bt/sku.html"
+    },
+    {
+      "title": "학술정보관",
+      "url": "https://library.skuniv.ac.kr"
+    }
+  ]
+}
