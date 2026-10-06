@@ -25,6 +25,8 @@ from typing import Any
 EMBEDDING_DIM = 768
 EMBEDDING_MODEL = "gemini-embedding-001"
 DOC_TYPE_GUIDE = "안내"
+DOC_TYPE_NOTICE = "공지"
+NOTICE_SHORT_CHARS = 80  # 공지 본문이 이보다 짧으면 "제목만 있는 공지"로 다룬다.
 
 MIN_CHUNK_CHARS = 200  # 이보다 짧은 절은 다음 절과 합친다.
 MAX_CHUNK_CHARS = 1500  # 이보다 긴 절은 문단 경계에서 나눈다.
@@ -46,6 +48,10 @@ class Page:
     source_url: str  # 최종 DB 값(중복이면 `#slug`가 붙은 상태는 assign_urls 이후)
     body: str
     status: str = "ok"
+    doc_type: str = DOC_TYPE_GUIDE  # DB doc_type (안내/공지)
+    published_at: str | None = None  # 공지 게시 시각(UTC ISO) — DB published_at
+    category: str = ""  # 공지 분류(학사·장학 …)
+    date_label: str = ""  # 공지 게시일(한국 날짜, 청크 머리말용)
 
 
 @dataclass
@@ -227,8 +233,36 @@ def _chunk_items(page: Page, item_prefix: str) -> list[Chunk]:
     return out
 
 
+def _notice_head(page: Page) -> str:
+    parts = ["공지", page.category, page.title, page.date_label]
+    return "[" + " · ".join(p for p in parts if p) + "]"
+
+
+def _readable_chars(text: str) -> int:
+    from ai.page_scraper import count_chars
+
+    return count_chars(text)
+
+
+def _chunk_notice(page: Page) -> list[Chunk]:
+    """공지 청킹. 모든 청크 맨 앞에 `[공지 · 분류 · 제목 · 날짜]`를 붙여 제목으로도 검색되게 한다.
+    본문이 거의 없는 공지(포스터 이미지·첨부만 있는 글)는 제목만으로 한 청크를 만든다."""
+    head = _notice_head(page)
+    body = page.body.strip()
+    if _readable_chars(body) < NOTICE_SHORT_CHARS:
+        note = "본문 내용이 거의 없는 공지입니다(이미지·첨부 파일로 안내되는 경우가 많음). 자세한 내용은 원문 링크를 확인하세요."
+        text = f"{head}\n{note}" + (f"\n{body}" if body else "")
+        return [Chunk(heading=page.title, text=text, meta={"short": True})]
+    return [Chunk(heading=page.title, text=f"{head}\n{piece}") for piece in _split_long(body)]
+
+
 def chunk_page(page: Page) -> list[Chunk]:
-    """페이지 종류에 맞는 청킹. 교수진·FAQ는 항목별, 나머지는 제목별."""
+    """페이지 종류에 맞는 청킹. 공지는 머리말+본문, 교수진·FAQ는 항목별, 나머지는 제목별."""
+    if page.doc_type == DOC_TYPE_NOTICE:
+        chunks = _chunk_notice(page)
+        for i, c in enumerate(chunks):
+            c.ordinal = i
+        return chunks
     if page.slug == "professors":
         chunks = _chunk_items(page, "### ")
     elif page.slug == "all-faq":
@@ -298,9 +332,10 @@ def sync_documents(
     session: Any,
     embedder: Embedder = embed_texts,
     remove_missing: bool = False,
+    doc_type: str = DOC_TYPE_GUIDE,
 ) -> SyncResult:
-    """안내 문서를 DB에 맞춘다. 본문이 같으면 건너뛰고, 달라졌으면 청크를 다시 만든다.
-    remove_missing=True면 이번 목록에 없는 `안내` 문서를 지운다(청크는 CASCADE)."""
+    """문서를 DB에 맞춘다(doc_type: 안내/공지). 제목·본문이 같으면 건너뛰고, 달라졌으면 청크를 다시 만든다.
+    remove_missing=True면 이번 목록에 없는 같은 doc_type 문서를 지운다(청크는 CASCADE)."""
     from sqlalchemy import text
 
     result = SyncResult()
@@ -308,10 +343,10 @@ def sync_documents(
         row.source_url: row
         for row in session.execute(
             text(
-                "SELECT id, source_url, content FROM admin_reg_documents "
+                "SELECT id, source_url, title, content FROM admin_reg_documents "
                 "WHERE doc_type = CAST(:t AS doc_type)"
             ),
-            {"t": DOC_TYPE_GUIDE},
+            {"t": doc_type},
         )
     }
     for page in pages:
@@ -319,18 +354,25 @@ def sync_documents(
         if not chunks:
             continue
         row = existing.get(page.source_url)
-        if row is not None and row.content == page.body:
+        if row is not None and row.content == page.body and row.title == page.title:
             result.unchanged += 1
             continue
         vectors = embedder([c.text for c in chunks], "RETRIEVAL_DOCUMENT")
         if row is None:
             doc_id = session.execute(
                 text(
-                    "INSERT INTO admin_reg_documents (id, title, doc_type, content, source_url) "
-                    "VALUES (gen_random_uuid(), :title, CAST(:t AS doc_type), :content, :url) "
-                    "RETURNING id"
+                    "INSERT INTO admin_reg_documents "
+                    "(id, title, doc_type, content, source_url, published_at) "
+                    "VALUES (gen_random_uuid(), :title, CAST(:t AS doc_type), :content, :url, "
+                    "CAST(:pub AS timestamptz)) RETURNING id"
                 ),
-                {"title": page.title, "t": DOC_TYPE_GUIDE, "content": page.body, "url": page.source_url},
+                {
+                    "title": page.title,
+                    "t": doc_type,
+                    "content": page.body,
+                    "url": page.source_url,
+                    "pub": page.published_at,
+                },
             ).scalar_one()
             result.added += 1
         else:
@@ -372,6 +414,7 @@ class Hit:
     article_no: str | None
     source_url: str | None
     distance: float  # 코사인 거리(작을수록 비슷함)
+    published_at: str | None = None  # 공지 게시 시각(ISO)
 
 
 def search(
@@ -388,7 +431,7 @@ def search(
     vec = embedder([query], "RETRIEVAL_QUERY")[0]
     sql = (
         "SELECT e.chunk_text, d.title, d.doc_type::text AS doc_type, d.article_no, d.source_url, "
-        "e.embedding <=> CAST(:vec AS vector) AS distance "
+        "e.embedding <=> CAST(:vec AS vector) AS distance, d.published_at "
         "FROM admin_faq_embeddings e JOIN admin_reg_documents d ON d.id = e.document_id "
     )
     params: dict[str, Any] = {"vec": _vec_literal(vec), "k": k}
@@ -397,7 +440,15 @@ def search(
         params["types"] = list(doc_types)
     sql += "ORDER BY e.embedding <=> CAST(:vec AS vector) LIMIT :k"
     return [
-        Hit(r.chunk_text, r.title, r.doc_type, r.article_no, r.source_url, float(r.distance))
+        Hit(
+            r.chunk_text,
+            r.title,
+            r.doc_type,
+            r.article_no,
+            r.source_url,
+            float(r.distance),
+            r.published_at.isoformat() if r.published_at else None,
+        )
         for r in session.execute(text(sql), params)
     ]
 

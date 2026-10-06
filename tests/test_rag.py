@@ -109,11 +109,11 @@ def test_sync_adds_updates_and_skips_unchanged() -> None:
     same = _page("a", f"## 절\n\n{LONG}\n", "https://x.kr/a")
     changed = _page("b", f"## 절\n\n{LONG}\n", "https://x.kr/b")
     new = _page("c", f"## 절\n\n{LONG}\n", "https://x.kr/c")
-    gone_row = SimpleNamespace(id="g", source_url="https://x.kr/gone", content="old")
+    gone_row = SimpleNamespace(id="g", source_url="https://x.kr/gone", title="t", content="old")
     session = FakeSession(
         [
-            SimpleNamespace(id="1", source_url=same.source_url, content=same.body),
-            SimpleNamespace(id="2", source_url=changed.source_url, content="옛 내용"),
+            SimpleNamespace(id="1", source_url=same.source_url, title=same.title, content=same.body),
+            SimpleNamespace(id="2", source_url=changed.source_url, title="옛 제목", content="옛 내용"),
             gone_row,
         ]
     )
@@ -124,3 +124,32 @@ def test_sync_adds_updates_and_skips_unchanged() -> None:
     assert res.chunks == 2
     assert sum("INSERT INTO admin_faq_embeddings" in s for s in session.sql) == 2
     assert sum("DELETE FROM admin_faq_embeddings" in s for s in session.sql) == 1
+
+
+def test_notice_chunks_have_head_and_short_notice_is_title_only() -> None:
+    long_body = "수강신청 변경 안내입니다. " * 20
+    long_page = rag.Page(
+        slug="notice-1",
+        title="2학기 수강신청 안내",
+        source_url="https://x.kr/notice/1",
+        body=long_body,
+        doc_type=rag.DOC_TYPE_NOTICE,
+        category="학사",
+        date_label="2026-10-06",
+    )
+    chunks = rag.chunk_page(long_page)
+    assert chunks[0].text.startswith("[공지 · 학사 · 2학기 수강신청 안내 · 2026-10-06]")
+    assert not chunks[0].meta.get("short")
+
+    short_page = rag.Page(
+        slug="notice-2",
+        title="현장실습학기제 설명회 개최 안내",
+        source_url="https://x.kr/notice/2",
+        body="[이미지]",
+        doc_type=rag.DOC_TYPE_NOTICE,
+        category="일반",
+        date_label="2026-10-06",
+    )
+    short = rag.chunk_page(short_page)
+    assert len(short) == 1 and short[0].meta["short"] is True
+    assert "현장실습학기제 설명회 개최 안내" in short[0].text and "원문 링크" in short[0].text

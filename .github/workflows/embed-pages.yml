@@ -1,6 +1,7 @@
 name: Embed pages (수동 실행)
 
-# 홈페이지 안내 문서(data/pages)를 청킹·임베딩해서 DB에 적재 (작업 1-4a).
+# 홈페이지 안내 문서(data/pages, 작업 1-4a)와 학교 공지(data/notices/notices.jsonl, 작업 1-14)를
+# 청킹·임베딩해서 DB에 적재.
 # Actions 탭 → "Embed pages" → Run workflow → 동작 선택.
 #   check:  청킹 결과만 확인 (DB·Gemini 안 씀)
 #   apply:  임베딩해서 DB에 적재 (본문이 안 바뀐 문서는 건너뜀 — 여러 번 눌러도 안전)
@@ -14,6 +15,11 @@ on:
         type: choice
         options: [check, apply, search]
         default: check
+      target:
+        description: "대상 (pages = 홈페이지 안내 문서, notices = 학교 공지)"
+        type: choice
+        options: [pages, notices]
+        default: pages
       remove_missing:
         description: "apply일 때: 이번 목록에 없는 안내 문서를 DB에서 삭제"
         type: boolean
@@ -30,6 +36,7 @@ jobs:
       contents: read
     env:
       ACTION: ${{ inputs.action }}
+      TARGET: ${{ inputs.target }}
       REMOVE_MISSING: ${{ inputs.remove_missing }}
       QUERY: ${{ inputs.query }}
     steps:
@@ -49,14 +56,16 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
+          FLAGS=""
+          if [ "$TARGET" = "notices" ]; then FLAGS="--notices"; fi
           if [ "$ACTION" = "check" ]; then
-            python scripts/embed_pages.py | tee -a "$GITHUB_STEP_SUMMARY"
+            python scripts/embed_pages.py $FLAGS | tee -a "$GITHUB_STEP_SUMMARY"
           elif [ "$ACTION" = "apply" ]; then
             if [ "$REMOVE_MISSING" = "true" ]; then
-              python scripts/embed_pages.py --apply --remove-missing | tee -a "$GITHUB_STEP_SUMMARY"
+              python scripts/embed_pages.py $FLAGS --apply --remove-missing | tee -a "$GITHUB_STEP_SUMMARY"
             else
-              python scripts/embed_pages.py --apply | tee -a "$GITHUB_STEP_SUMMARY"
+              python scripts/embed_pages.py $FLAGS --apply | tee -a "$GITHUB_STEP_SUMMARY"
             fi
           else
-            python scripts/embed_pages.py --search "$QUERY" | tee -a "$GITHUB_STEP_SUMMARY"
+            python scripts/embed_pages.py $FLAGS --search "$QUERY" | tee -a "$GITHUB_STEP_SUMMARY"
           fi
