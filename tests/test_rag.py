@@ -1,0 +1,126 @@
+from __future__ import annotations
+
+from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
+
+import pytest
+
+from ai import rag
+
+LONG = "가" * 300
+
+
+def _page(slug: str, body: str, url: str = "https://x.kr/a") -> rag.Page:
+    return rag.Page(slug=slug, title="제목", source_url=url, body=body)
+
+
+def test_front_matter_and_load(tmp_path: Path) -> None:
+    (tmp_path / "a.md").write_text(
+        '---\nslug: a\ntitle: "에이"\nsource_url: "https://x.kr/a"\nstatus: ok\n---\n# 에이\n\n본문\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "b.md").write_text(
+        "---\nslug: b\ntitle: 비\nsource_url: https://x.kr/b\nstatus: short\n---\n본문\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "_report.md").write_text("무시", encoding="utf-8")
+    pages = rag.load_pages(tmp_path)
+    assert [p.slug for p in pages] == ["a"] and pages[0].title == "에이"
+    assert len(rag.load_pages(tmp_path, include_short=True)) == 2
+
+
+def test_assign_urls_suffix_for_shared_url() -> None:
+    url = "https://x.kr/organization-phone"
+    pages = [
+        _page("professors", "x", url),
+        _page("organization-phone", "x", url),
+        _page("department-sites", "x", url),
+    ]
+    rag.assign_urls(pages)
+    got = {p.slug: p.source_url for p in pages}
+    assert got["organization-phone"] == url
+    assert got["professors"] == url + "#professors"
+    assert got["department-sites"] == url + "#department-sites"
+
+
+def test_heading_chunks_merge_short_and_prefix() -> None:
+    body = f"# 졸업\n\n## 조기졸업\n\n짧음\n\n### 자격\n\n{LONG}\n\n## 유예\n\n{LONG}\n"
+    chunks = rag.chunk_page(_page("graduation", body))
+    assert len(chunks) == 2  # '조기졸업'(짧음)은 '자격'과 합쳐짐
+    assert chunks[0].text.startswith("[제목 > 졸업 > 조기졸업]") or "[제목 > " in chunks[0].text
+    assert "짧음" in chunks[0].text and LONG in chunks[0].text
+    assert chunks[1].heading.endswith("유예")
+    assert [c.ordinal for c in chunks] == [0, 1]
+
+
+def test_long_section_is_split() -> None:
+    body = "## 긴 절\n\n" + "\n\n".join(["나" * 600] * 5)
+    chunks = rag.chunk_page(_page("x", body))
+    assert len(chunks) >= 3
+    assert all(len(c.text) <= rag.MAX_CHUNK_CHARS + 60 for c in chunks)
+
+
+def test_professors_one_chunk_each() -> None:
+    body = (
+        "# 학과 교수진 연락처\n\n> 출처\n\n## 소프트웨어학과\n\n- 페이지: https://x\n\n"
+        "### 김선희 (소프트웨어학과)\n- 연구실 : 한림관 804호\n- 이메일: a@x.kr\n\n"
+        "### 박종준 (소프트웨어학과 · 퇴임교수)\n- 퇴임교수 (퇴임함)\n"
+    )
+    chunks = rag.chunk_page(_page("professors", body))
+    texts = [c.text for c in chunks if "김선희" in c.heading or "박종준" in c.heading]
+    assert len(texts) == 2
+    assert "a@x.kr" in texts[0] and "a@x.kr" not in texts[1]
+    assert texts[0].startswith("[제목 > 소프트웨어학과 > 김선희 (소프트웨어학과)]")
+
+
+def test_faq_one_chunk_per_question() -> None:
+    body = "# 전체 FAQ\n\n### Q. 하나\n\n(일반)\n\nA. 답1\n\n### Q. 둘\n\nA. 답2\n"
+    chunks = rag.chunk_page(_page("all-faq", body))
+    assert len(chunks) == 2 and "답1" in chunks[0].text and "답2" in chunks[1].text
+
+
+def test_normalize_unit_length() -> None:
+    v = rag._normalize([3.0, 4.0])
+    assert v == pytest.approx([0.6, 0.8])
+
+
+class FakeSession:
+    def __init__(self, existing: list[Any]) -> None:
+        self.existing = existing
+        self.sql: list[str] = []
+
+    def execute(self, stmt: Any, params: dict[str, Any] | None = None) -> Any:
+        s = str(stmt)
+        self.sql.append(s)
+        if s.startswith("SELECT id, source_url"):
+            return iter(self.existing)
+        if "RETURNING id" in s:
+            return SimpleNamespace(scalar_one=lambda: "new-id")
+        return SimpleNamespace()
+
+
+def _fake_embed(texts: Any, task: str) -> list[list[float]]:
+    return [[1.0] + [0.0] * (rag.EMBEDDING_DIM - 1) for _ in texts]
+
+
+def test_sync_adds_updates_and_skips_unchanged() -> None:
+    pytest.importorskip("sqlalchemy")
+    same = _page("a", f"## 절\n\n{LONG}\n", "https://x.kr/a")
+    changed = _page("b", f"## 절\n\n{LONG}\n", "https://x.kr/b")
+    new = _page("c", f"## 절\n\n{LONG}\n", "https://x.kr/c")
+    gone_row = SimpleNamespace(id="g", source_url="https://x.kr/gone", content="old")
+    session = FakeSession(
+        [
+            SimpleNamespace(id="1", source_url=same.source_url, content=same.body),
+            SimpleNamespace(id="2", source_url=changed.source_url, content="옛 내용"),
+            gone_row,
+        ]
+    )
+    res = rag.sync_documents(
+        [same, changed, new], session=session, embedder=_fake_embed, remove_missing=True
+    )
+    assert (res.added, res.updated, res.unchanged, res.removed) == (1, 1, 1, 1)
+    assert res.chunks == 2
+    assert sum("INSERT INTO admin_faq_embeddings" in s for s in session.sql) == 2
+    assert sum("DELETE FROM admin_faq_embeddings" in s for s in session.sql) == 1
