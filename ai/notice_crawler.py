@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import html as htmllib
 import json
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -89,6 +90,14 @@ def build_url(since: str, page: int, per_page: int = PER_PAGE) -> str:
     return f"{ps.BASE_URL}{API_PATH}?{query}"
 
 
+_JUNK_TAGS = re.compile(r"<!DOCTYPE[^>]*>|<!--.*?-->|</?(?:html|head|body|meta)\b[^>]*>", re.I | re.S)
+
+
+def clean_html(raw: str) -> str:
+    """한글 문서 등을 붙여넣은 공지에 섞인 문서 선언·주석·meta 태그를 지운다(안 지우면 본문에 글자로 나옴)."""
+    return _JUNK_TAGS.sub("", raw)
+
+
 def _title(raw: str) -> str:
     return " ".join(htmllib.unescape(raw).split())
 
@@ -98,7 +107,7 @@ def parse_item(item: dict[str, Any]) -> dict[str, Any]:
     link = str(item.get("link", "")).strip()
     cat_ids = [c for c in item.get("notice-category", []) if isinstance(c, int)]
     category = next((CATEGORIES[c] for c in cat_ids if c in CATEGORIES), "")
-    raw_html = str((item.get("content") or {}).get("rendered", ""))
+    raw_html = clean_html(str((item.get("content") or {}).get("rendered", "")))
     extracted = ps.extract_page(f'<div class="entry-content">{raw_html}</div>', link)
     date_local = str(item.get("date", ""))
     date_gmt = str(item.get("date_gmt", ""))

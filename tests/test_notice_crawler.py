@@ -71,3 +71,14 @@ def test_to_pages_and_summary() -> None:
     assert pages[0].doc_type == rag.DOC_TYPE_NOTICE and pages[0].date_label == "2026-10-01"
     lines = nc.summarize(recs)
     assert "공지 2건" in lines[0] and "1건" in lines[-1]
+
+
+def test_doctype_and_meta_junk_is_removed() -> None:
+    html = (
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" '
+        '"http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta charset="utf-8"></head>'
+        "<body><!-- x --><p>독감 예방접종 실시 안내</p></body></html>"
+    )
+    rec = nc.parse_item(_item(9, "독감", html))
+    assert "DTD" not in rec["body"] and "PUBLIC" not in rec["body"]
+    assert "독감 예방접종 실시 안내" in rec["body"]
