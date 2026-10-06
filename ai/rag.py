@@ -19,6 +19,7 @@ import os
 import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -415,6 +416,31 @@ class Hit:
     source_url: str | None
     distance: float  # 코사인 거리(작을수록 비슷함)
     published_at: str | None = None  # 공지 게시 시각(ISO)
+    score: float = 0.0  # 순위 점수 = 거리 + 오래된 공지 가산점(작을수록 위)
+
+
+RECENCY_PER_YEAR = 0.03  # 공지는 1년 오래될수록 거리에 이만큼 더한다(같은 내용이면 최신이 위로).
+RECENCY_MAX_YEARS = 2.0  # 가산점은 최대 2년치까지만.
+CANDIDATE_FACTOR = 4  # 순위를 다시 매기려고 k의 몇 배를 먼저 가져온다.
+
+
+def _age_years(published_at: str, now: datetime) -> float:
+    when = datetime.fromisoformat(published_at)
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=UTC)
+    return max((now - when).total_seconds() / (365.25 * 86400), 0.0)
+
+
+def rerank(hits: list[Hit], k: int, now: datetime | None = None) -> list[Hit]:
+    """공지(게시일이 있는 문서)에만 오래된 만큼 가산점을 주고 점수 순으로 k개.
+    학칙·안내 문서는 게시일이 없어 거리 그대로다."""
+    current = now or datetime.now(UTC)
+    for h in hits:
+        penalty = 0.0
+        if h.doc_type == DOC_TYPE_NOTICE and h.published_at:
+            penalty = RECENCY_PER_YEAR * min(_age_years(h.published_at, current), RECENCY_MAX_YEARS)
+        h.score = h.distance + penalty
+    return sorted(hits, key=lambda h: h.score)[:k]
 
 
 def search(
@@ -424,8 +450,9 @@ def search(
     k: int = 5,
     doc_types: Sequence[str] | None = None,
     embedder: Embedder = embed_texts,
+    now: datetime | None = None,
 ) -> list[Hit]:
-    """질문과 가까운 청크 k개. doc_types로 학칙/공지/안내를 골라 볼 수 있다."""
+    """질문과 가까운 청크 k개(공지는 최신일수록 유리). doc_types로 학칙/공지/안내를 골라 볼 수 있다."""
     from sqlalchemy import text
 
     vec = embedder([query], "RETRIEVAL_QUERY")[0]
@@ -434,12 +461,12 @@ def search(
         "e.embedding <=> CAST(:vec AS vector) AS distance, d.published_at "
         "FROM admin_faq_embeddings e JOIN admin_reg_documents d ON d.id = e.document_id "
     )
-    params: dict[str, Any] = {"vec": _vec_literal(vec), "k": k}
+    params: dict[str, Any] = {"vec": _vec_literal(vec), "k": k * CANDIDATE_FACTOR}
     if doc_types:
         sql += "WHERE d.doc_type::text = ANY(:types) "
         params["types"] = list(doc_types)
     sql += "ORDER BY e.embedding <=> CAST(:vec AS vector) LIMIT :k"
-    return [
+    hits = [
         Hit(
             r.chunk_text,
             r.title,
@@ -451,6 +478,7 @@ def search(
         )
         for r in session.execute(text(sql), params)
     ]
+    return rerank(hits, k, now)
 
 
 def chunk_report(pages: list[Page]) -> str:

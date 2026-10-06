@@ -153,3 +153,24 @@ def test_notice_chunks_have_head_and_short_notice_is_title_only() -> None:
     short = rag.chunk_page(short_page)
     assert len(short) == 1 and short[0].meta["short"] is True
     assert "현장실습학기제 설명회 개최 안내" in short[0].text and "원문 링크" in short[0].text
+
+
+def test_rerank_prefers_recent_notice_when_distances_are_close() -> None:
+    from datetime import UTC, datetime
+
+    now = datetime(2026, 10, 6, tzinfo=UTC)
+    old = rag.Hit("옛", "t", "공지", None, "u1", 0.231, "2025-10-13T01:00:00Z")
+    new = rag.Hit("새", "t", "공지", None, "u2", 0.234, "2026-10-06T01:00:00Z")
+    assert [h.chunk_text for h in rag.rerank([old, new], 2, now)] == ["새", "옛"]
+
+
+def test_rerank_keeps_much_closer_old_notice_and_ignores_non_notices() -> None:
+    from datetime import UTC, datetime
+
+    now = datetime(2026, 10, 6, tzinfo=UTC)
+    old_close = rag.Hit("옛", "t", "공지", None, "u1", 0.15, "2025-10-13T01:00:00Z")
+    new_far = rag.Hit("새", "t", "공지", None, "u2", 0.30, "2026-10-06T01:00:00Z")
+    guide = rag.Hit("안내", "t", "안내", None, "u3", 0.20)
+    out = rag.rerank([new_far, guide, old_close], 3, now)
+    assert [h.chunk_text for h in out] == ["옛", "안내", "새"]
+    assert guide.score == pytest.approx(0.20)

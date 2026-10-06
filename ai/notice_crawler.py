@@ -90,7 +90,10 @@ def build_url(since: str, page: int, per_page: int = PER_PAGE) -> str:
     return f"{ps.BASE_URL}{API_PATH}?{query}"
 
 
-_JUNK_TAGS = re.compile(r"<!DOCTYPE[^>]*>|<!--.*?-->|</?(?:html|head|body|meta)\b[^>]*>", re.I | re.S)
+_JUNK_TAGS = re.compile(
+    r"<!DOCTYPE[^>]*>|<!--.*?-->|</?(?:html|head|body|meta)\b[^>]*>",
+    re.IGNORECASE | re.DOTALL,
+)
 
 
 def clean_html(raw: str) -> str:
