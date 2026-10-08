@@ -6,6 +6,7 @@
   python scripts/embed_pages.py --apply --remove-missing   # 이번 목록에 없는 '안내' 문서는 DB에서 삭제
   python scripts/embed_pages.py --search "휴학 신청 기간"    # 검색 확인 (DATABASE_URL·GEMINI_API_KEY 필요)
   python scripts/embed_pages.py --notices [--apply]  # 안내 페이지 대신 공지(data/notices/notices.jsonl)를 처리
+  python scripts/embed_pages.py --regulations [--apply]  # 학칙(data/regulations/hakchik-*.txt, 조 단위)을 처리
 
 입력은 data/pages/*.md 중 status가 ok인 문서. 본문이 달라지지 않은 문서는 다시 임베딩하지 않는다.
 """
@@ -28,15 +29,22 @@ def main() -> int:
     parser.add_argument("--search", metavar="질문", help="적재된 안내 문서에서 검색")
     parser.add_argument("--include-short", action="store_true", help="status=short 문서도 포함")
     parser.add_argument("--notices", action="store_true", help="공지(notices.jsonl)를 처리")
+    parser.add_argument("--regulations", action="store_true", help="학칙(조 단위)을 처리")
     args = parser.parse_args()
 
     if args.search:
         from ai.db import get_session
 
         with get_session() as db:
-            kind = rag.DOC_TYPE_NOTICE if args.notices else rag.DOC_TYPE_GUIDE
+            kind = (
+                rag.DOC_TYPE_NOTICE
+                if args.notices
+                else rag.DOC_TYPE_REGULATION
+                if args.regulations
+                else rag.DOC_TYPE_GUIDE
+            )
             for hit in rag.search(args.search, session=db, doc_types=[kind]):
-                when = f" ({hit.published_at[:10]})" if hit.published_at else ""
+                when = f" ({hit.published_at[:10]})" if hit.published_at and not args.regulations else ""
                 print(f"[{hit.distance:.3f}] {hit.title}{when} — {hit.source_url}")
                 print("   " + hit.chunk_text.replace("\n", " ")[:160])
         return 0
@@ -47,11 +55,20 @@ def main() -> int:
 
         pages = nc.to_pages(nc.load_jsonl())
         doc_type = rag.DOC_TYPE_NOTICE
+    elif args.regulations:
+        from ai import regulations
+
+        pages = regulations.load_pages()
+        doc_type = rag.DOC_TYPE_REGULATION
     else:
         pages = rag.load_pages(include_short=args.include_short)
     chunks = sum(len(rag.chunk_page(p)) for p in pages)
     print(f"문서 {len(pages)}개 → 청크 {chunks}개")
     if not args.apply:
+        if args.regulations:
+            for p in pages[:3]:
+                print(f"  예시 {p.title} → {rag.chunk_page(p)[0].text.splitlines()[0]}")
+            pages = []
         if args.notices:
             short = sum(1 for p in pages for c in rag.chunk_page(p) if c.meta.get("short"))
             print(f"  이 중 제목만으로 검색되는 공지(본문 거의 없음): {short}건")

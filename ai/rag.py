@@ -27,6 +27,7 @@ EMBEDDING_DIM = 768
 EMBEDDING_MODEL = "gemini-embedding-001"
 DOC_TYPE_GUIDE = "안내"
 DOC_TYPE_NOTICE = "공지"
+DOC_TYPE_REGULATION = "학칙"
 NOTICE_SHORT_CHARS = 80  # 공지 본문이 이보다 짧으면 "제목만 있는 공지"로 다룬다.
 
 MIN_CHUNK_CHARS = 200  # 이보다 짧은 절은 다음 절과 합친다.
@@ -52,7 +53,8 @@ class Page:
     doc_type: str = DOC_TYPE_GUIDE  # DB doc_type (안내/공지)
     published_at: str | None = None  # 공지 게시 시각(UTC ISO) — DB published_at
     category: str = ""  # 공지 분류(학사·장학 …)
-    date_label: str = ""  # 공지 게시일(한국 날짜, 청크 머리말용)
+    date_label: str = ""  # 공지 게시일(한국 날짜) 또는 학칙 시행일(2025.10.1), 청크 머리말용
+    article_no: str | None = None  # 학칙 조 번호(제N조 / 제N조의2) — DB article_no
 
 
 @dataclass
@@ -257,8 +259,23 @@ def _chunk_notice(page: Page) -> list[Chunk]:
     return [Chunk(heading=page.title, text=f"{head}\n{piece}") for piece in _split_long(body)]
 
 
+def _chunk_regulation(page: Page) -> list[Chunk]:
+    """학칙 청킹: 조 1개 = 청크 1개(너무 길면 항 단위로 나눔). 맨 앞에 `[학칙 제N조(제목) · 장 · 절 · 기준일]`."""
+    parts = [page.title, page.category, f"{page.date_label} 시행 기준" if page.date_label else ""]
+    head = "[" + " · ".join(p for p in parts if p) + "]"
+    return [
+        Chunk(heading=page.title, text=f"{head}\n{piece}")
+        for piece in _split_long(page.body.strip(), limit=MAX_CHUNK_CHARS)
+    ]
+
+
 def chunk_page(page: Page) -> list[Chunk]:
-    """페이지 종류에 맞는 청킹. 공지는 머리말+본문, 교수진·FAQ는 항목별, 나머지는 제목별."""
+    """페이지 종류에 맞는 청킹. 학칙은 조별, 공지는 머리말+본문, 교수진·FAQ는 항목별, 나머지는 제목별."""
+    if page.doc_type == DOC_TYPE_REGULATION:
+        chunks = _chunk_regulation(page)
+        for i, c in enumerate(chunks):
+            c.ordinal = i
+        return chunks
     if page.doc_type == DOC_TYPE_NOTICE:
         chunks = _chunk_notice(page)
         for i, c in enumerate(chunks):
@@ -363,13 +380,14 @@ def sync_documents(
             doc_id = session.execute(
                 text(
                     "INSERT INTO admin_reg_documents "
-                    "(id, title, doc_type, content, source_url, published_at) "
-                    "VALUES (gen_random_uuid(), :title, CAST(:t AS doc_type), :content, :url, "
+                    "(id, title, doc_type, article_no, content, source_url, published_at) "
+                    "VALUES (gen_random_uuid(), :title, CAST(:t AS doc_type), :art, :content, :url, "
                     "CAST(:pub AS timestamptz)) RETURNING id"
                 ),
                 {
                     "title": page.title,
                     "t": doc_type,
+                    "art": page.article_no,
                     "content": page.body,
                     "url": page.source_url,
                     "pub": page.published_at,
@@ -381,9 +399,9 @@ def sync_documents(
             session.execute(
                 text(
                     "UPDATE admin_reg_documents SET title = :title, content = :content, "
-                    "updated_at = now() WHERE id = :id"
+                    "article_no = :art, updated_at = now() WHERE id = :id"
                 ),
-                {"title": page.title, "content": page.body, "id": doc_id},
+                {"title": page.title, "content": page.body, "art": page.article_no, "id": doc_id},
             )
             session.execute(
                 text("DELETE FROM admin_faq_embeddings WHERE document_id = :id"), {"id": doc_id}

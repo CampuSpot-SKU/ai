@@ -16,12 +16,12 @@ on:
         options: [check, apply, search]
         default: check
       target:
-        description: "대상 (pages = 홈페이지 안내 문서, notices = 학교 공지)"
+        description: "대상 (pages = 홈페이지 안내 문서, notices = 학교 공지, regulations = 학칙)"
         type: choice
-        options: [pages, notices]
+        options: [pages, notices, regulations]
         default: pages
       remove_missing:
-        description: "apply일 때: 이번 목록에 없는 안내 문서를 DB에서 삭제"
+        description: "apply일 때: 이번 목록에 없는 문서를 DB에서 삭제(공지는 쓰지 마세요)"
         type: boolean
         default: false
       query:
@@ -58,6 +58,7 @@ jobs:
         run: |
           FLAGS=""
           if [ "$TARGET" = "notices" ]; then FLAGS="--notices"; fi
+          if [ "$TARGET" = "regulations" ]; then FLAGS="--regulations"; fi
           if [ "$ACTION" = "check" ]; then
             python scripts/embed_pages.py $FLAGS | tee -a "$GITHUB_STEP_SUMMARY"
           elif [ "$ACTION" = "apply" ]; then
