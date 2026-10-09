@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any
 
 import pytest
@@ -108,3 +109,65 @@ def test_source_as_of_only_for_regulations() -> None:
     assert ans._source(reg_hit).as_of == "2024.9.1 기준"
     notice = _hit("공지", 0.1, title="공지", doc_type="공지", article_no=None, published_at="2026-10-05T16:00:00Z")
     assert ans._source(notice).as_of is None
+
+
+# ---------------------------------------------------------------- 규정 개정 공지 연결 (1-4f)
+
+
+def _notice(title: str, day: str) -> ans.RevisionNotice:
+    y, m, d = (int(x) for x in day.split("-"))
+    return ans.RevisionNotice(title, f"https://x.kr/n/{day}", datetime(y, m, d, 1, 0, tzinfo=UTC))
+
+
+REG = _hit("본문", published_at="2025-10-01T00:00:00+00:00")
+
+
+def test_regulation_name() -> None:
+    assert ans.regulation_name("학칙 제29조(휴학)") == "학칙"
+    assert ans.regulation_name("학생생활규정 제3조(상벌)") == "학생생활규정"
+
+
+def test_pick_revision_only_newer_than_regulation_date() -> None:
+    old = _notice("학칙 일부개정안 사전 공고", "2025-09-01")  # 규정 기준일(10/1)보다 이전 → 이미 반영된 개정
+    new = _notice("학칙 일부개정안 사전 공고", "2026-01-19")
+    newer = _notice("서경대학교 학칙 및 시행세칙 개정안 사전공지", "2026-09-21")
+    assert ans.pick_revision([REG], [old]) is None
+    assert ans.pick_revision([REG], [newer, new, old]) == newer
+
+
+def test_graduate_school_rule_notice_is_not_linked_to_undergrad_rule() -> None:
+    grad = _notice("대학원 학칙 일부개정 공포", "2025-10-30")
+    both = _notice("대학·대학원 학칙 및 학칙 시행세칙 일부 개정안 사전 공고", "2026-04-20")
+    assert ans.pick_revision([REG], [grad]) is None
+    assert ans.pick_revision([REG], [grad, both]) == both
+
+
+def test_non_regulation_or_undated_hits_are_ignored() -> None:
+    notice = _notice("학칙 일부개정안 사전 공고", "2026-01-19")
+    guide = _hit("안내", title="안내", doc_type="안내", article_no=None, published_at="2025-10-01T00:00:00+00:00")
+    undated = _hit("본문", published_at=None)
+    assert ans.pick_revision([guide, undated], [notice]) is None
+
+
+def test_with_revision_notice_adds_sentence_and_source() -> None:
+    notice = _notice("학칙 일부개정안 사전 공고", "2026-01-19")
+    base = ans.AnswerResult(answer="휴학할 수 있어요.", sources=[ans._source(REG)])
+    r = ans.with_revision_notice(base, [REG], [notice])
+    assert r.answer.startswith("휴학할 수 있어요.") and "1월 19일에 개정 공지가 있었어요" in r.answer
+    assert r.sources[-1].title == notice.title and r.sources[-1].url == notice.url
+    assert r.sources[-1].as_of == "2026.1.19 게시"
+    assert ans.with_revision_notice(base, [REG], []) == base
+
+
+def test_answer_adds_revision_and_survives_loader_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    hit = _hit("휴학 안내 " * 20, published_at="2025-10-01T00:00:00+00:00")
+    monkeypatch.setattr(ans, "_call_gemini", lambda q, h: _g())
+    notice = _notice("학칙 일부개정안 사전 공고", "2026-01-19")
+    ok = ans.answer("휴학", session=object(), searcher=lambda q, **_k: [hit], revisions=lambda s: [notice])
+    assert "개정 공지가 있었어요" in ok.answer and len(ok.sources) == 2
+
+    def boom(_s: Any) -> list[ans.RevisionNotice]:
+        raise RuntimeError("db down")
+
+    bad = ans.answer("휴학", session=object(), searcher=lambda q, **_k: [hit], revisions=boom)
+    assert "개정 공지" not in bad.answer and len(bad.sources) == 1

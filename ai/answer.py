@@ -10,7 +10,9 @@
 """
 import logging
 import os
+import re
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, timezone
 from difflib import SequenceMatcher
 from functools import lru_cache
@@ -148,6 +150,88 @@ def validate(g: GeminiAnswer, hits: list[rag.Hit]) -> AnswerResult:
     return AnswerResult(answer=answer, sources=sources)
 
 
+# ---------------------------------------------------------------- 규정 개정 공지 연결 (1-4f)
+
+REVISION_SQL_PATTERN = "개정|사전 ?공[고지]|공포"  # 공지 제목에서 개정 관련 글을 찾는 DB 정규식
+REVISION_NOTICE_LIMIT = 50
+
+
+@dataclass(frozen=True)
+class RevisionNotice:
+    title: str
+    url: str | None
+    published_at: datetime
+
+
+RevisionLoader = Callable[[Any], list[RevisionNotice]]
+
+
+def load_revision_notices(session: Any) -> list[RevisionNotice]:
+    """학교 공지 중 제목에 개정·사전공고·공포가 들어간 최근 글(최신순)."""
+    from sqlalchemy import text
+
+    rows = session.execute(
+        text(
+            "SELECT title, source_url, published_at FROM admin_reg_documents "
+            "WHERE doc_type = CAST(:t AS doc_type) AND published_at IS NOT NULL "
+            "AND title ~ :pat ORDER BY published_at DESC LIMIT :n"
+        ),
+        {"t": rag.DOC_TYPE_NOTICE, "pat": REVISION_SQL_PATTERN, "n": REVISION_NOTICE_LIMIT},
+    )
+    return [RevisionNotice(r.title, r.source_url, r.published_at) for r in rows]
+
+
+def regulation_name(title: str) -> str:
+    """"학칙 제29조(휴학)" → "학칙", "학생생활규정 제3조(…)" → "학생생활규정"."""
+    return re.split(r"\s제\d", title, maxsplit=1)[0].strip()
+
+
+def _mentions(notice_title: str, name: str) -> bool:
+    flat_title, flat_name = notice_title.replace(" ", ""), name.replace(" ", "")
+    if not flat_name or flat_name not in flat_title:
+        return False
+    # 대학원 학칙 개정 공지는 (대학) 학칙과 다른 규정이라 제외 — "대학·대학원 학칙"처럼 둘 다 다루는 제목은 통과
+    return not (flat_name == "학칙" and flat_title.startswith("대학원학칙"))
+
+
+def _aware(when: datetime) -> datetime:
+    return when if when.tzinfo else when.replace(tzinfo=UTC)
+
+
+def pick_revision(used: list[rag.Hit], notices: list[RevisionNotice]) -> RevisionNotice | None:
+    """답변 근거가 된 규정(학칙·규정집)의 기준일 이후에 올라온, 그 규정 이름이 제목에 있는 개정 공지 중 가장 최근 것."""
+    best: RevisionNotice | None = None
+    for h in used:
+        if h.doc_type != rag.DOC_TYPE_REGULATION or not h.published_at:
+            continue
+        base = _aware(datetime.fromisoformat(h.published_at))
+        name = regulation_name(h.title)
+        for n in notices:
+            newer = _aware(n.published_at) > base and _mentions(n.title, name)
+            if newer and (best is None or n.published_at > best.published_at):
+                best = n
+    return best
+
+
+def with_revision_notice(
+    result: AnswerResult, used: list[rag.Hit], notices: list[RevisionNotice]
+) -> AnswerResult:
+    """근거가 규정인데 그 뒤에 개정 공지가 있으면 답변 끝에 안내 한 줄 + 그 공지를 근거 칩에 추가."""
+    notice = pick_revision(used, notices)
+    if notice is None:
+        return result
+    when = _aware(notice.published_at).astimezone(KST)
+    note = (
+        f"\n\n참고: 이 규정은 {when.month}월 {when.day}일에 개정 공지가 있었어요. "
+        "최신 내용은 아래 공지에서 확인해 주세요."
+    )
+    sources = [
+        *result.sources,
+        Source(title=notice.title, url=notice.url, as_of=f"{when.year}.{when.month}.{when.day} 게시"),
+    ]
+    return AnswerResult(answer=result.answer + note, sources=sources)
+
+
 def _call_gemini(question: str, hits: list[rag.Hit]) -> GeminiAnswer:
     response = _client().models.generate_content(
         model=os.environ.get("GEMINI_RAG_MODEL") or os.environ.get("GEMINI_INTENT_MODEL") or DEFAULT_MODEL,
@@ -162,8 +246,35 @@ def _call_gemini(question: str, hits: list[rag.Hit]) -> GeminiAnswer:
     return GeminiAnswer.model_validate_json(response.text or "")
 
 
-def answer(question: str, *, session: Any, searcher: Searcher | None = None) -> AnswerResult:
-    """질문 하나에 근거 기반 답변. 근거가 없으면 안내 문구 + sources=[] (Gemini 호출 없음)."""
+def _decorate(
+    result: AnswerResult,
+    g: GeminiAnswer,
+    hits: list[rag.Hit],
+    session: Any,
+    revisions: RevisionLoader | None,
+) -> AnswerResult:
+    if session is None and revisions is None:
+        return result
+    if not result.sources:
+        return result
+    try:
+        notices = (revisions or load_revision_notices)(session)
+        used = [hits[n - 1] for n in dict.fromkeys(g.used)]
+        return with_revision_notice(result, used, notices)
+    except Exception:
+        logger.warning("revision notice lookup failed", exc_info=True)
+        return result
+
+
+def answer(
+    question: str,
+    *,
+    session: Any,
+    searcher: Searcher | None = None,
+    revisions: RevisionLoader | None = None,
+) -> AnswerResult:
+    """질문 하나에 근거 기반 답변. 근거가 없으면 안내 문구 + sources=[] (Gemini 호출 없음).
+    근거가 규정이고 그 뒤에 개정 공지가 있으면 안내 한 줄을 덧붙인다(1-4f). DB 조회 실패는 무시."""
     search = searcher or rag.search_hybrid
     hits = select_hits(search(question, session=session, k=TOP_K))
     if not hits:
@@ -171,7 +282,9 @@ def answer(question: str, *, session: Any, searcher: Searcher | None = None) -> 
     last_error: Exception | None = None
     for attempt in (1, 2):  # 1회 재시도
         try:
-            return validate(_call_gemini(question, hits), hits)
+            g = _call_gemini(question, hits)
+            result = validate(g, hits)
+            return _decorate(result, g, hits, session, revisions)
         except AnswerError as e:
             last_error = e
         except (ValidationError, ValueError) as e:  # JSON 형식이 깨진 응답
