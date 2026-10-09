@@ -9,6 +9,8 @@
 실패 대응 (명세서 11장): Gemini 호출 1회 재시도 → 그래도 실패하거나 검사에 탈락하면 JudgeError →
 backend가 기존 규칙 기반 판정으로 대체한다.
 """
+import base64
+import binascii
 import logging
 import os
 from functools import lru_cache
@@ -25,6 +27,10 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MODEL = "gemini-3.5-flash-lite"
 MAX_REASON_LEN = 90
+MAX_PHOTO_NOTE_LEN = 70
+MAX_PHOTO_BYTES = 5 * 1024 * 1024  # 명세 11장: 사진 5MB 이하(backend가 이미 검사 — 여기서도 한 번 더)
+_JPEG_MAGIC = b"\xff\xd8\xff"
+_PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 FALLBACK_CATEGORY = "기타"
 _PROMPT_PATH = Path(__file__).parent / "prompts" / "report_judge.md"
 
@@ -41,6 +47,29 @@ class JudgeRequest(BaseModel):
         default=None, max_length=100, description="backend가 학교 데이터로 확인한 위치 (예: '혜인관 2층 화장실'). 모르면 없음"
     )
     categories: list[str] = Field(min_length=1, max_length=20, description="고를 수 있는 카테고리 이름들")
+    photo_base64: str | None = Field(
+        default=None,
+        max_length=MAX_PHOTO_BYTES * 4 // 3 + 16,
+        description="신고에 첨부된 사진(JPEG/PNG)의 base64. 없으면 글만으로 판정 (1-10)",
+    )
+    photo_mime: Literal["image/jpeg", "image/png"] | None = Field(default=None, description="사진 형식")
+
+    def photo_bytes(self) -> bytes | None:
+        """사진이 있으면 디코딩해 크기·실제 형식(첫 바이트)을 검사한 뒤 돌려준다. 이상하면 JudgeError."""
+        if not self.photo_base64:
+            return None
+        try:
+            data = base64.b64decode(self.photo_base64, validate=True)
+        except (binascii.Error, ValueError) as e:
+            raise JudgeError("사진 base64가 올바르지 않음") from e
+        if not data or len(data) > MAX_PHOTO_BYTES:
+            raise JudgeError("사진 크기")
+        magic_ok = (self.photo_mime == "image/jpeg" and data.startswith(_JPEG_MAGIC)) or (
+            self.photo_mime == "image/png" and data.startswith(_PNG_MAGIC)
+        )
+        if not magic_ok:
+            raise JudgeError("사진 형식이 mime과 다름")
+        return data
 
 
 class GeminiJudgement(BaseModel):
@@ -51,6 +80,7 @@ class GeminiJudgement(BaseModel):
     urgency: Level
     problem_stated: bool
     reason: str
+    photo_note: str = ""  # 사진에서 보이는 상황 한 줄(사진이 없거나 신고와 무관하면 빈 문자열)
 
 
 class JudgeResult(BaseModel):
@@ -59,6 +89,7 @@ class JudgeResult(BaseModel):
     urgency: Level
     problem_stated: bool
     reason: str
+    photo_note: str | None = None  # 관리자가 사진 속 상황을 한눈에 보도록 (없으면 null)
 
 
 @lru_cache
@@ -75,6 +106,8 @@ def _build_content(req: JudgeRequest) -> str:
         "\n## 학생이 말한 내용",
         req.text,
     ]
+    if req.photo_base64:
+        lines += ["\n## 첨부 사진", "학생이 사진을 한 장 첨부했다(아래 이미지)."]
     return "\n".join(lines)
 
 
@@ -90,19 +123,33 @@ def validate(g: GeminiJudgement, req: JudgeRequest) -> JudgeResult:
         raise JudgeError("이유에 우선순위 등급·서식 포함")  # 등급은 backend 매트릭스가 정함
     if invented := _invented_fact(reason, f"{req.text} {req.location or ''}"):
         raise JudgeError(f"지어낸 표현: {invented}")
+    photo_note = " ".join(g.photo_note.split()).strip('"').strip() if req.photo_base64 else ""
+    if photo_note:
+        if len(photo_note) > MAX_PHOTO_NOTE_LEN or any(m in photo_note for m in ("P1", "P2", "P3", "P4", "**", "#")):
+            raise JudgeError("사진 설명 길이·서식")
+        if invented := _invented_fact(photo_note, f"{req.text} {req.location or ''}"):
+            raise JudgeError(f"사진 설명에 지어낸 표현: {invented}")
     return JudgeResult(
         category=category,
         impact=g.impact,
         urgency=g.urgency,
         problem_stated=g.problem_stated,
         reason=reason,
+        photo_note=photo_note or None,
     )
+
+
+def _contents(req: JudgeRequest) -> list[types.Part]:
+    parts = [types.Part.from_text(text=_build_content(req))]
+    if (data := req.photo_bytes()) is not None and req.photo_mime:
+        parts.append(types.Part.from_bytes(data=data, mime_type=req.photo_mime))
+    return parts
 
 
 def _call_gemini(req: JudgeRequest) -> GeminiJudgement:
     response = _client().models.generate_content(
         model=os.environ.get("GEMINI_JUDGE_MODEL") or os.environ.get("GEMINI_INTENT_MODEL") or DEFAULT_MODEL,
-        contents=_build_content(req),
+        contents=_contents(req),
         config=types.GenerateContentConfig(
             system_instruction=_system_prompt(),
             response_mime_type="application/json",
@@ -114,6 +161,11 @@ def _call_gemini(req: JudgeRequest) -> GeminiJudgement:
 
 
 def judge(req: JudgeRequest) -> JudgeResult:
+    try:
+        req.photo_bytes()
+    except JudgeError as e:  # 사진이 깨졌거나 형식이 이상하면 사진만 빼고 글로 판정 (접수는 막지 않음)
+        logger.warning("report judge photo ignored: %s", e)
+        req = req.model_copy(update={"photo_base64": None, "photo_mime": None})
     last_error: Exception | None = None
     for attempt in (1, 2):  # 1회 재시도
         try:
