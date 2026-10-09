@@ -248,6 +248,16 @@ def parse_book(text: str) -> list[Regulation]:
     return regs
 
 
+# 조·항 끝의 제·개정 이력 `(개정 2017. 9. 1, 20. 9. 1)`, `(신설 2021. 3. 1)` — 검색에 쓸모없는 숫자라 규정집 임베딩에서는 뺀다.
+# `(삭제 …)`는 "삭제된 항"이라는 뜻이 있으므로 남긴다. 키워드 바로 뒤에 숫자가 오는 괄호만 대상(본문 속 "(개정안 …)" 같은 말은 안 건드림).
+_REVISION_MARK = re.compile(r"[ \t]*\(\s*(?:본?조\s*)?(?:전\s*문\s*)?(?:개\s*정|신\s*설|제\s*정)\s*\d[^)]*\)")
+
+
+def strip_revisions(body: str) -> str:
+    out = _REVISION_MARK.sub("", body)
+    return re.sub(r"[ \t]+\n", "\n", out).strip()
+
+
 def book_title(name: str, a: Article) -> str:
     return f"{name} {a.article_no}({a.title})"
 
@@ -270,7 +280,7 @@ def book_pages(regs: list[Regulation], base_iso: str, base_label: str) -> list[r
                     slug=f"gyujeongjip-{r_idx:03d}-{a.article_no}" + (f"-{n}" if n > 1 else ""),
                     title=book_title(r.name, a),
                     source_url=url,
-                    body=_collapse_blank(a.body),
+                    body=strip_revisions(_collapse_blank(a.body)) or a.body,
                     doc_type=DOC_TYPE_REG,
                     published_at=f"{base_iso}T00:00:00Z",
                     category=" · ".join(p for p in (a.chapter, a.section) if p),

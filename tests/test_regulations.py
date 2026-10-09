@@ -184,3 +184,27 @@ def test_real_book_counts() -> None:
     assert all(p.body.strip() for p in pages)
     assert not any("서경대학교 학칙 제" in p.title for p in pages)
     assert len(reg.load_all_pages()) == len(reg.load_pages()) + len(pages)
+
+
+def test_strip_revisions_keeps_deletion_and_plain_text() -> None:
+    body = (
+        "① 위원회의 사무는 인사과에서 관장한다.(개정 2017. 9. 1, 20. 9. 1, 24. 3. 1)\n"
+        "② 임용은 총장이 한다.(신\n설 2021. 3. 1)\n"
+        "③ (삭제 2020. 9. 1)\n"
+        "④ 건설공사(전문공사를 제외한다)는 따로 정한다.(조 개정 2010. 3. 1)"
+    )
+    out = reg.strip_revisions(body)
+    assert out.splitlines() == [
+        "① 위원회의 사무는 인사과에서 관장한다.",
+        "② 임용은 총장이 한다.",
+        "③ (삭제 2020. 9. 1)",
+        "④ 건설공사(전문공사를 제외한다)는 따로 정한다.",
+    ]
+
+
+def test_book_pages_have_no_revision_tails() -> None:
+    import re
+
+    pages = reg.load_book_pages()
+    bad = [p.title for p in pages if re.search(r"\((본?조 )?(개정|신설)\s*\d", p.body)]
+    assert bad == []
