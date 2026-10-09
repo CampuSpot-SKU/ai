@@ -499,6 +499,54 @@ def search(
     return rerank(hits, k, now)
 
 
+ARTICLE_RE = re.compile(r"제\s*(\d+)\s*조(?:\s*의\s*(\d+))?")
+ARTICLE_HIT_LIMIT = 3  # 조항번호로 직접 찾아 합치는 청크 수(질문에 조가 여러 개여도 이만큼만)
+
+
+def extract_article_nos(question: str) -> list[str]:
+    """질문에서 `제N조` / `제N조의M`을 찾아 DB `article_no` 형식으로 돌려준다(중복 제거, 등장 순서)."""
+    found: list[str] = []
+    for m in ARTICLE_RE.finditer(question):
+        no = f"제{m.group(1)}조" + (f"의{m.group(2)}" if m.group(2) else "")
+        if no not in found:
+            found.append(no)
+    return found
+
+
+def search_articles(article_nos: Sequence[str], *, session: Any, k: int = ARTICLE_HIT_LIMIT) -> list[Hit]:
+    """학칙 중 article_no가 일치하는 조의 청크(거리 0으로 취급) — 질문이 조 번호를 직접 말했을 때."""
+    from sqlalchemy import text
+
+    if not article_nos:
+        return []
+    sql = (
+        "SELECT e.chunk_text, d.title, d.doc_type::text AS doc_type, d.article_no, d.source_url, "
+        "d.published_at FROM admin_faq_embeddings e JOIN admin_reg_documents d ON d.id = e.document_id "
+        "WHERE d.doc_type::text = :dt AND d.article_no = ANY(:nos) ORDER BY d.article_no LIMIT :k"
+    )
+    rows = session.execute(text(sql), {"dt": DOC_TYPE_REGULATION, "nos": list(article_nos), "k": k})
+    return [
+        Hit(r.chunk_text, r.title, r.doc_type, r.article_no, r.source_url, 0.0,
+            r.published_at.isoformat() if r.published_at else None)
+        for r in rows
+    ]
+
+
+def search_hybrid(
+    query: str,
+    *,
+    session: Any,
+    k: int = 5,
+    embedder: Embedder = embed_texts,
+    now: datetime | None = None,
+) -> list[Hit]:
+    """벡터 검색 + 조항번호 보조(1-4c, 명세 4-5): 질문에 `제N조`가 있으면 그 조를 결과 맨 앞에 합친다."""
+    vector_hits = search(query, session=session, k=k, embedder=embedder, now=now)
+    direct = search_articles(extract_article_nos(query), session=session)
+    seen = {h.chunk_text for h in direct}
+    return direct + [h for h in vector_hits if h.chunk_text not in seen]
+
+
 def chunk_report(pages: list[Page]) -> str:
     """청킹 결과 요약(검수용) — JSON 문자열."""
     rows = []

@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from ai.agent import AgentError, TurnRequest, TurnResult, turn
+from ai.answer import AnswerError, AnswerRequest, AnswerResult, answer
+from ai.db import get_session
 from ai.intent import HistoryMessage, IntentClassificationError, IntentResult, classify
 from ai.judge import JudgeError, JudgeRequest, JudgeResult, judge
 from ai.say import SayError, SayRequest, SayResult, say
@@ -59,7 +61,15 @@ def report_turn(req: TurnRequest) -> TurnResult:
         raise HTTPException(status_code=503, detail="대화 처리 실패") from None
 
 
-@router.post("/rag/answer")
-def rag_answer(payload: dict) -> None:
-    # TODO: ai.rag 모듈 호출 (스트리밍 응답은 추후 SSE로 전환) — Phase 1-4
-    raise NotImplementedError
+@router.post("/rag/answer", response_model=AnswerResult)
+def rag_answer(req: AnswerRequest) -> AnswerResult:
+    """학칙·안내·공지를 근거로 행정 문의에 답변 + 근거 목록 `sources` (1-4c).
+
+    우선 완성 답변을 한 번에 돌려주고 backend가 SSE로 전달한다(실시간 스트리밍은 3순위 1-22).
+    실패하면 503 → backend가 "잠시 후 다시 시도해주세요"로 응답.
+    """
+    try:
+        with get_session() as db:
+            return answer(req.question, session=db)
+    except AnswerError:
+        raise HTTPException(status_code=503, detail="답변 생성 실패") from None
