@@ -96,6 +96,15 @@ def test_search_hybrid_puts_direct_article_first_and_dedupes(monkeypatch: pytest
     vec = [_hit("벡터1", 0.2), _hit("조문", 0.3)]
     monkeypatch.setattr(rag, "search", lambda *_a, **_k: vec)
     monkeypatch.setattr(rag, "search_articles", lambda nos, **_k: [_hit("조문", 0.0)] if nos else [])
+    monkeypatch.setattr(rag, "match_regulations", lambda *_a, **_k: [])
     out = rag.search_hybrid("제29조 알려줘", session=None)
     assert [h.chunk_text for h in out] == ["조문", "벡터1"]
     assert [h.chunk_text for h in rag.search_hybrid("휴학", session=None)] == ["벡터1", "조문"]
+
+
+def test_source_as_of_only_for_regulations() -> None:
+    reg_hit = _hit("조문", 0.1, title="교원 인사 규정 제3조(임용)", doc_type="학칙", article_no="제3조")
+    reg_hit.published_at = "2024-09-01T00:00:00Z"
+    assert ans._source(reg_hit).as_of == "2024.9.1 기준"
+    notice = _hit("공지", 0.1, title="공지", doc_type="공지", article_no=None, published_at="2026-10-05T16:00:00Z")
+    assert ans._source(notice).as_of is None

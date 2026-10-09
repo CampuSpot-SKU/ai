@@ -53,6 +53,7 @@ class Source(BaseModel):
     title: str
     article_no: str | None = None
     url: str | None = None
+    as_of: str | None = None  # 학칙·규정은 기준일('2024.9.1 기준') — 일부만 개정되므로 칩에 같이 보여준다
 
 
 class AnswerResult(BaseModel):
@@ -117,8 +118,15 @@ def _build_content(question: str, hits: list[rag.Hit]) -> str:
     return "\n".join(lines)
 
 
+def _as_of(h: rag.Hit) -> str | None:
+    if h.doc_type != rag.DOC_TYPE_REGULATION or not h.published_at:
+        return None
+    d = datetime.fromisoformat(h.published_at)
+    return f"{d.year}.{d.month}.{d.day} 기준"
+
+
 def _source(h: rag.Hit) -> Source:
-    return Source(title=h.title, article_no=h.article_no, url=h.source_url)
+    return Source(title=h.title, article_no=h.article_no, url=h.source_url, as_of=_as_of(h))
 
 
 def validate(g: GeminiAnswer, hits: list[rag.Hit]) -> AnswerResult:

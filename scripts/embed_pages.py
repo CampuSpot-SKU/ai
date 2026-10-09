@@ -6,7 +6,7 @@
   python scripts/embed_pages.py --apply --remove-missing   # 이번 목록에 없는 '안내' 문서는 DB에서 삭제
   python scripts/embed_pages.py --search "휴학 신청 기간"    # 검색 확인 (DATABASE_URL·GEMINI_API_KEY 필요)
   python scripts/embed_pages.py --notices [--apply]  # 안내 페이지 대신 공지(data/notices/notices.jsonl)를 처리
-  python scripts/embed_pages.py --regulations [--apply]  # 학칙(data/regulations/hakchik-*.txt, 조 단위)을 처리
+  python scripts/embed_pages.py --regulations [--apply]  # 학칙(hakchik-*.txt)과 규정집(gyujeongjip-*.txt)을 조 단위로 처리
 
 입력은 data/pages/*.md 중 status가 ok인 문서. 본문이 달라지지 않은 문서는 다시 임베딩하지 않는다.
 """
@@ -29,7 +29,7 @@ def main() -> int:
     parser.add_argument("--search", metavar="질문", help="적재된 안내 문서에서 검색")
     parser.add_argument("--include-short", action="store_true", help="status=short 문서도 포함")
     parser.add_argument("--notices", action="store_true", help="공지(notices.jsonl)를 처리")
-    parser.add_argument("--regulations", action="store_true", help="학칙(조 단위)을 처리")
+    parser.add_argument("--regulations", action="store_true", help="학칙·규정집(조 단위)을 처리")
     args = parser.parse_args()
 
     if args.search:
@@ -58,7 +58,7 @@ def main() -> int:
     elif args.regulations:
         from ai import regulations
 
-        pages = regulations.load_pages()
+        pages = regulations.load_all_pages()
         doc_type = rag.DOC_TYPE_REGULATION
     else:
         pages = rag.load_pages(include_short=args.include_short)
@@ -66,7 +66,9 @@ def main() -> int:
     print(f"문서 {len(pages)}개 → 청크 {chunks}개")
     if not args.apply:
         if args.regulations:
-            for p in pages[:3]:
+            book = [p for p in pages if "#규정집-" in p.source_url]
+            print(f"  이 중 학칙 {len(pages) - len(book)}개, 규정집 {len(book)}개")
+            for p in pages[:2] + book[:2]:
                 print(f"  예시 {p.title} → {rag.chunk_page(p)[0].text.splitlines()[0]}")
             pages = []
         if args.notices:

@@ -28,11 +28,15 @@ EMBEDDING_MODEL = "gemini-embedding-001"
 DOC_TYPE_GUIDE = "안내"
 DOC_TYPE_NOTICE = "공지"
 DOC_TYPE_REGULATION = "학칙"
+RULES_URL = "https://www.skuniv.ac.kr/rules"  # 학교 규정 페이지 — 학칙·규정집 문서의 source_url 앞부분
+MAIN_REG_URL_PREFIX = f"{RULES_URL}#학칙-"  # 학칙 본문(조 단위) 문서의 source_url. 규정집은 `#규정집-`
+BOOK_BASIS_SUFFIX = "기준 규정집"  # date_label이 이걸로 끝나면 머리말에 '시행 기준' 대신 그대로 쓴다
 NOTICE_SHORT_CHARS = 80  # 공지 본문이 이보다 짧으면 "제목만 있는 공지"로 다룬다.
 
 MIN_CHUNK_CHARS = 200  # 이보다 짧은 절은 다음 절과 합친다.
 MAX_CHUNK_CHARS = 1500  # 이보다 긴 절은 문단 경계에서 나눈다.
 EMBED_BATCH = 50
+SYNC_GROUP = 100  # 적재할 때 한 번에 임베딩·커밋하는 청크 수(안팎)
 
 PAGES_DIR = Path(__file__).resolve().parent.parent / "data" / "pages"
 OFFICE_SLUG = "organization-phone"  # 조직도 페이지 — 같은 주소를 쓰는 다른 문서와 구분 기준
@@ -261,7 +265,11 @@ def _chunk_notice(page: Page) -> list[Chunk]:
 
 def _chunk_regulation(page: Page) -> list[Chunk]:
     """학칙 청킹: 조 1개 = 청크 1개(너무 길면 항 단위로 나눔). 맨 앞에 `[학칙 제N조(제목) · 장 · 절 · 기준일]`."""
-    parts = [page.title, page.category, f"{page.date_label} 시행 기준" if page.date_label else ""]
+    if page.date_label.endswith(BOOK_BASIS_SUFFIX):
+        basis = page.date_label  # 규정집: '2024.9.1 기준 규정집'
+    else:
+        basis = f"{page.date_label} 시행 기준" if page.date_label else ""
+    parts = [page.title, page.category, basis]
     head = "[" + " · ".join(p for p in parts if p) + "]"
     return [
         Chunk(heading=page.title, text=f"{head}\n{piece}")
@@ -302,6 +310,21 @@ def _normalize(vec: Sequence[float]) -> list[float]:
     return [v / norm for v in vec]
 
 
+def _embed_with_retry(client: Any, model: str, batch: list[Any], config: Any, tries: int = 6) -> Any:
+    """한도(429)·일시 오류(5xx)면 잠깐 쉬었다가 다시 시도 — 규정집처럼 수천 건을 한 번에 넣을 때 필요."""
+    import time
+
+    for attempt in range(tries):
+        try:
+            return client.models.embed_content(model=model, contents=batch, config=config)
+        except Exception as e:  # google.genai.errors.APIError (code 속성)
+            code = getattr(e, "code", None)
+            if attempt == tries - 1 or code not in (429, 500, 503):
+                raise
+            time.sleep(min(15 * 2**attempt, 120))
+    raise RuntimeError("unreachable")
+
+
 def embed_texts(texts: Sequence[str], task: str = "RETRIEVAL_DOCUMENT") -> list[list[float]]:
     """Gemini 임베딩(768차원). task: 문서는 RETRIEVAL_DOCUMENT, 질문은 RETRIEVAL_QUERY."""
     from google import genai
@@ -312,11 +335,8 @@ def embed_texts(texts: Sequence[str], task: str = "RETRIEVAL_DOCUMENT") -> list[
     out: list[list[float]] = []
     for i in range(0, len(texts), EMBED_BATCH):
         batch: list[Any] = list(texts[i : i + EMBED_BATCH])
-        res = client.models.embed_content(
-            model=model,
-            contents=batch,
-            config=types.EmbedContentConfig(output_dimensionality=EMBEDDING_DIM, task_type=task),
-        )
+        res = _embed_with_retry(client, model, batch, types.EmbedContentConfig(
+            output_dimensionality=EMBEDDING_DIM, task_type=task))
         embeddings = res.embeddings or []
         if len(embeddings) != len(batch):
             raise RuntimeError("임베딩 응답 개수가 요청과 다릅니다.")
@@ -344,38 +364,20 @@ class SyncResult:
     chunks: int = 0
 
 
-def sync_documents(
-    pages: list[Page],
-    *,
+def _write_group(
+    group: list[tuple[Page, list[Chunk], Any]],
     session: Any,
-    embedder: Embedder = embed_texts,
-    remove_missing: bool = False,
-    doc_type: str = DOC_TYPE_GUIDE,
-) -> SyncResult:
-    """문서를 DB에 맞춘다(doc_type: 안내/공지). 제목·본문이 같으면 건너뛰고, 달라졌으면 청크를 다시 만든다.
-    remove_missing=True면 이번 목록에 없는 같은 doc_type 문서를 지운다(청크는 CASCADE)."""
+    embedder: Embedder,
+    doc_type: str,
+    result: SyncResult,
+) -> None:
     from sqlalchemy import text
 
-    result = SyncResult()
-    existing = {
-        row.source_url: row
-        for row in session.execute(
-            text(
-                "SELECT id, source_url, title, content FROM admin_reg_documents "
-                "WHERE doc_type = CAST(:t AS doc_type)"
-            ),
-            {"t": doc_type},
-        )
-    }
-    for page in pages:
-        chunks = chunk_page(page)
-        if not chunks:
-            continue
-        row = existing.get(page.source_url)
-        if row is not None and row.content == page.body and row.title == page.title:
-            result.unchanged += 1
-            continue
-        vectors = embedder([c.text for c in chunks], "RETRIEVAL_DOCUMENT")
+    vectors = embedder([c.text for _, chunks, _ in group for c in chunks], "RETRIEVAL_DOCUMENT")
+    offset = 0
+    for page, chunks, row in group:
+        vecs = vectors[offset : offset + len(chunks)]
+        offset += len(chunks)
         if row is None:
             doc_id = session.execute(
                 text(
@@ -407,7 +409,7 @@ def sync_documents(
                 text("DELETE FROM admin_faq_embeddings WHERE document_id = :id"), {"id": doc_id}
             )
             result.updated += 1
-        for chunk, vec in zip(chunks, vectors, strict=True):
+        for chunk, vec in zip(chunks, vecs, strict=True):
             session.execute(
                 text(
                     "INSERT INTO admin_faq_embeddings (id, document_id, embedding, chunk_text) "
@@ -416,6 +418,57 @@ def sync_documents(
                 {"doc": doc_id, "vec": _vec_literal(vec), "chunk": chunk.text},
             )
         result.chunks += len(chunks)
+    commit = getattr(session, "commit", None)
+    if commit is not None:
+        commit()
+
+
+def sync_documents(
+    pages: list[Page],
+    *,
+    session: Any,
+    embedder: Embedder = embed_texts,
+    remove_missing: bool = False,
+    doc_type: str = DOC_TYPE_GUIDE,
+) -> SyncResult:
+    """문서를 DB에 맞춘다(doc_type: 안내/공지). 제목·본문이 같으면 건너뛰고, 달라졌으면 청크를 다시 만든다.
+    remove_missing=True면 이번 목록에 없는 같은 doc_type 문서를 지운다(청크는 CASCADE)."""
+    from sqlalchemy import text
+
+    result = SyncResult()
+    existing = {
+        row.source_url: row
+        for row in session.execute(
+            text(
+                "SELECT id, source_url, title, content FROM admin_reg_documents "
+                "WHERE doc_type = CAST(:t AS doc_type)"
+            ),
+            {"t": doc_type},
+        )
+    }
+    todo: list[tuple[Page, list[Chunk], Any]] = []
+    for page in pages:
+        chunks = chunk_page(page)
+        if not chunks:
+            continue
+        row = existing.get(page.source_url)
+        if row is not None and row.content == page.body and row.title == page.title:
+            result.unchanged += 1
+            continue
+        todo.append((page, chunks, row))
+
+    # 청크 SYNC_GROUP개 안팎씩 묶어서 임베딩 → 적재 → 커밋. 규정집처럼 수천 건이어도
+    # 요청 수가 적고, 중간에 실패해도 이미 커밋된 문서는 다음 실행 때 '변경 없음'으로 건너뛴다.
+    group: list[tuple[Page, list[Chunk], Any]] = []
+    size = 0
+    for item in todo:
+        group.append(item)
+        size += len(item[1])
+        if size >= SYNC_GROUP:
+            _write_group(group, session, embedder, doc_type, result)
+            group, size = [], 0
+    if group:
+        _write_group(group, session, embedder, doc_type, result)
     if remove_missing:
         keep = {p.source_url for p in pages}
         for url, row in existing.items():
@@ -513,18 +566,60 @@ def extract_article_nos(question: str) -> list[str]:
     return found
 
 
-def search_articles(article_nos: Sequence[str], *, session: Any, k: int = ARTICLE_HIT_LIMIT) -> list[Hit]:
-    """학칙 중 article_no가 일치하는 조의 청크(거리 0으로 취급) — 질문이 조 번호를 직접 말했을 때."""
+def match_regulations(question: str, *, session: Any) -> list[str]:
+    """질문에 이름이 그대로 들어 있는 규정집 규정(예: '교원 인사 규정')의 이름 목록. 긴 이름 우선, 부분 겹침 제거."""
+    from sqlalchemy import text
+
+    rows = session.execute(
+        text(
+            "SELECT DISTINCT regexp_replace(title, ' 제[0-9]+조.*$', '') AS name FROM admin_reg_documents "
+            "WHERE doc_type::text = :dt AND source_url LIKE :p"
+        ),
+        {"dt": DOC_TYPE_REGULATION, "p": f"{RULES_URL}#규정집-%"},
+    )
+    squashed = re.sub(r"\s+", "", question)
+    found = sorted(
+        (r.name for r in rows if len(r.name.replace(" ", "")) >= 4 and r.name.replace(" ", "") in squashed),
+        key=lambda n: -len(n),
+    )
+    kept: list[str] = []
+    for n in found:
+        key = n.replace(" ", "")
+        if not any(key in k.replace(" ", "") for k in kept):
+            kept.append(n)
+    return kept
+
+
+def search_articles(
+    article_nos: Sequence[str],
+    *,
+    session: Any,
+    k: int = ARTICLE_HIT_LIMIT,
+    regulations: Sequence[str] = (),
+) -> list[Hit]:
+    """article_no가 일치하는 조의 청크(거리 0으로 취급) — 질문이 조 번호를 직접 말했을 때.
+
+    규정 이름이 같이 나왔으면(`regulations`) 그 규정 안에서만, 아니면 학칙 본문에서만 찾는다
+    (규정집 230여 개 규정에도 제N조가 있어 섞이면 엉뚱한 조가 나오기 때문).
+    """
     from sqlalchemy import text
 
     if not article_nos:
         return []
+    params: dict[str, Any] = {"dt": DOC_TYPE_REGULATION, "nos": list(article_nos), "k": k}
+    if regulations:
+        scope = "d.title LIKE ANY(:pats)"
+        params["pats"] = [f"{n} 제%" for n in regulations]
+    else:
+        scope = "d.source_url LIKE :prefix"
+        params["prefix"] = MAIN_REG_URL_PREFIX + "%"
     sql = (
         "SELECT e.chunk_text, d.title, d.doc_type::text AS doc_type, d.article_no, d.source_url, "
         "d.published_at FROM admin_faq_embeddings e JOIN admin_reg_documents d ON d.id = e.document_id "
-        "WHERE d.doc_type::text = :dt AND d.article_no = ANY(:nos) ORDER BY d.article_no LIMIT :k"
+        f"WHERE d.doc_type::text = :dt AND d.article_no = ANY(:nos) AND {scope} "
+        "ORDER BY d.title, e.id LIMIT :k"
     )
-    rows = session.execute(text(sql), {"dt": DOC_TYPE_REGULATION, "nos": list(article_nos), "k": k})
+    rows = session.execute(text(sql), params)
     return [
         Hit(r.chunk_text, r.title, r.doc_type, r.article_no, r.source_url, 0.0,
             r.published_at.isoformat() if r.published_at else None)
@@ -542,7 +637,9 @@ def search_hybrid(
 ) -> list[Hit]:
     """벡터 검색 + 조항번호 보조(1-4c, 명세 4-5): 질문에 `제N조`가 있으면 그 조를 결과 맨 앞에 합친다."""
     vector_hits = search(query, session=session, k=k, embedder=embedder, now=now)
-    direct = search_articles(extract_article_nos(query), session=session)
+    nos = extract_article_nos(query)
+    regs = match_regulations(query, session=session) if nos else []
+    direct = search_articles(nos, session=session, regulations=regs)
     seen = {h.chunk_text for h in direct}
     return direct + [h for h in vector_hits if h.chunk_text not in seen]
 

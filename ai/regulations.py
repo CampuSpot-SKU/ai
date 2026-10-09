@@ -21,7 +21,8 @@ from pathlib import Path
 from ai import rag
 
 REGULATIONS_DIR = Path(__file__).resolve().parent.parent / "data" / "regulations"
-RULES_URL = "https://www.skuniv.ac.kr/rules"
+RULES_URL = rag.RULES_URL
+BOOK_BASIS_SUFFIX = rag.BOOK_BASIS_SUFFIX
 DOC_TYPE_REG = rag.DOC_TYPE_REGULATION
 
 _ARTICLE = re.compile(r"^제 *(\d+) *조(?: *의 *(\d+))? *\(([^)]*)\)\s*(.*)$")
@@ -164,6 +165,143 @@ def to_pages(articles: list[Article], base_iso: str, base_label: str) -> list[ra
             )
         )
     return pages
+
+
+# ---------------------------------------------------------------------------
+# 규정집(1-4d): 학칙 외 230여 개 규정이 한 파일(gyujeongjip-YYYYMMDD.txt)에 들어 있다.
+# 규정마다 `제1조(`로 시작하는 본문 앞에 규정명이 있고, 그 앞에 제정·개정 이력이 붙어 있다.
+# ---------------------------------------------------------------------------
+_PAGE_FOOTER = re.compile(r"^\s*-\s*[\d\-~]+\s*-\s*$")  # '- 12 -', '- 3-4~5 -'
+_RUNNING_HEAD = re.compile(  # 쪽 맨 윗줄: '제3편 행정  제1장 …', '개인정보보호규정', '서경대학교학칙'
+    r"^\s*(제\s*\d+\s*편.*|[가-힣A-Za-z0-9·&()\-]{2,40}(규정|정관|학칙|세칙|내규|규칙|강령|수칙|지침|칙))\s*$"
+)
+_ART1 = re.compile(r"^제 *1 *조 *\(")
+_TITLE_SKIP = [
+    re.compile(p)
+    for p in (
+        r"^\s*$",
+        r"^\s*(제\s*정|개\s*정|전문개정|폐\s*지)",
+        r"^\s*\(?\s*\d{2,4}\.\s*\d",  # 날짜만 있는 이력 줄
+        r"^\s*제\s*\d+\s*편",
+        r"^\s*제\s*\d+\s*장\s+\S",
+    )
+]
+_ABOLISHED = re.compile(r"폐\s*지")
+MAIN_REGULATION = "서경대학교 학칙"  # 학칙 본문은 hakchik-*.txt로 따로 적재하므로 규정집에서는 건너뛴다
+
+
+@dataclass
+class Regulation:
+    name: str
+    articles: list[Article]
+
+
+def book_lines(text: str) -> list[str]:
+    """규정집 원문에서 쪽 맨 윗줄(머리글)과 바닥글(`- N -`)을 지운 줄 목록."""
+    out: list[str] = []
+    for i, page in enumerate(text.split("\f")):
+        lines = page.splitlines()
+        if i > 0:
+            for k, line in enumerate(lines):
+                if line.strip():
+                    if _RUNNING_HEAD.match(line):
+                        lines = lines[:k] + lines[k + 1 :]
+                    break
+        out.extend(line.rstrip() for line in lines if not _PAGE_FOOTER.match(line))
+    return out
+
+
+def _regulation_name(raw: str) -> str:
+    return _squash(raw.strip().strip("∙·• ").strip())
+
+
+def split_regulations(lines: list[str]) -> list[tuple[str, list[str]]]:
+    """`제1조(` 앞의 규정명을 찾아 (규정명, 그 규정의 줄들)로 나눈다. 폐지·학칙 본문·가짜 경계는 뺀다."""
+    starts: list[tuple[int, int, str]] = []  # (규정명 줄, 제1조 줄, 규정명)
+    for i, line in enumerate(lines):
+        if not _ART1.match(line):
+            continue
+        j = i - 1
+        while j > 0 and any(p.match(lines[j]) for p in _TITLE_SKIP):
+            j -= 1
+        name = _regulation_name(lines[j])
+        if name.endswith(("다.", ".")):  # 협약서 같은 문장 — 규정 경계가 아님
+            continue
+        starts.append((j, i, name))
+    out: list[tuple[str, list[str]]] = []
+    for n, (tj, ai, name) in enumerate(starts):
+        end = starts[n + 1][0] if n + 1 < len(starts) else len(lines)
+        if name == MAIN_REGULATION:
+            continue
+        if any(_ABOLISHED.search(x) for x in lines[tj + 1 : ai]):
+            continue
+        out.append((name, lines[tj + 1 : end]))
+    return out
+
+
+def parse_book(text: str) -> list[Regulation]:
+    regs = []
+    for name, body in split_regulations(book_lines(text)):
+        arts = parse_articles("\n".join(body))
+        if arts:
+            regs.append(Regulation(name=name, articles=arts))
+    return regs
+
+
+def book_title(name: str, a: Article) -> str:
+    return f"{name} {a.article_no}({a.title})"
+
+
+def book_pages(regs: list[Regulation], base_iso: str, base_label: str) -> list[rag.Page]:
+    pages: list[rag.Page] = []
+    used: set[str] = set()
+    for r_idx, r in enumerate(regs):
+        key = name_key(r.name)
+        for a in r.articles:
+            tail = f"{key}-{a.article_no}"
+            n = 1
+            while f"{RULES_URL}#규정집-{tail}" in used:  # 같은 규정 안에서 조 번호가 겹치면 번호를 붙여 구분
+                n += 1
+                tail = f"{key}-{a.article_no}-{n}"
+            url = f"{RULES_URL}#규정집-{tail}"
+            used.add(url)
+            pages.append(
+                rag.Page(
+                    slug=f"gyujeongjip-{r_idx:03d}-{a.article_no}" + (f"-{n}" if n > 1 else ""),
+                    title=book_title(r.name, a),
+                    source_url=url,
+                    body=_collapse_blank(a.body),
+                    doc_type=DOC_TYPE_REG,
+                    published_at=f"{base_iso}T00:00:00Z",
+                    category=" · ".join(p for p in (a.chapter, a.section) if p),
+                    date_label=base_label,
+                    article_no=a.article_no,
+                )
+            )
+    return pages
+
+
+def name_key(name: str) -> str:
+    """주소·검색용 규정명: 공백 제거."""
+    return re.sub(r"\s+", "", name)
+
+
+def latest_book(directory: Path = REGULATIONS_DIR) -> Path | None:
+    files = sorted(directory.glob("gyujeongjip-*.txt"))
+    return files[-1] if files else None
+
+
+def load_book_pages(path: Path | None = None) -> list[rag.Page]:
+    path = path or latest_book()
+    if path is None:
+        return []
+    iso, label = base_date_from_name(path)
+    return book_pages(parse_book(path.read_text(encoding="utf-8")), iso, f"{label} {BOOK_BASIS_SUFFIX}")
+
+
+def load_all_pages() -> list[rag.Page]:
+    """학칙 본문(조 단위) + 규정집(규정별 조 단위). `sync_documents`에 한 번에 넘긴다."""
+    return load_pages() + load_book_pages()
 
 
 def latest_file(directory: Path = REGULATIONS_DIR) -> Path:

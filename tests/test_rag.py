@@ -174,3 +174,83 @@ def test_rerank_keeps_much_closer_old_notice_and_ignores_non_notices() -> None:
     out = rag.rerank([new_far, guide, old_close], 3, now)
     assert [h.chunk_text for h in out] == ["옛", "안내", "새"]
     assert guide.score == pytest.approx(0.20)
+
+
+class _FakeSession:
+    def __init__(self, names: list[str] | None = None) -> None:
+        self.names = names or []
+        self.calls: list[tuple[str, dict[str, Any]]] = []
+
+    def execute(self, stmt: Any, params: Any = None) -> list[SimpleNamespace]:
+        self.calls.append((str(stmt), params or {}))
+        return [SimpleNamespace(name=n) for n in self.names]
+
+
+def test_match_regulations_longest_and_no_overlap() -> None:
+    sess = _FakeSession(["교원 인사 규정", "비전임교원 인사 규정", "복무 규정"])
+    got = rag.match_regulations("비전임교원 인사 규정 제5조가 뭐야", session=sess)
+    assert got == ["비전임교원 인사 규정"]  # '교원 인사 규정'은 더 긴 이름에 포함되어 제외
+    assert rag.match_regulations("학칙 제5조", session=sess) == []
+
+
+def test_search_articles_scope_main_vs_named_regulation() -> None:
+    sess = _FakeSession()
+    rag.search_articles(["제5조"], session=sess)
+    sql, params = sess.calls[-1]
+    assert "d.source_url LIKE :prefix" in sql and params["prefix"].endswith("#학칙-%")
+    rag.search_articles(["제5조"], session=sess, regulations=["복무 규정"])
+    sql, params = sess.calls[-1]
+    assert "d.title LIKE ANY(:pats)" in sql and params["pats"] == ["복무 규정 제%"]
+
+
+def test_sync_embeds_and_commits_in_groups(monkeypatch: pytest.MonkeyPatch) -> None:
+    pytest.importorskip("sqlalchemy")
+    monkeypatch.setattr(rag, "SYNC_GROUP", 1)  # 문서 1개(청크 1개 이상)마다 한 묶음
+    commits: list[int] = []
+    calls: list[int] = []
+
+    class S(FakeSession):
+        def commit(self) -> None:
+            commits.append(1)
+
+    def emb(texts: Any, task: str) -> list[list[float]]:
+        calls.append(len(texts))
+        return _fake_embed(texts, task)
+
+    pages = [_page(n, f"## 절\n\n{LONG}\n", f"https://x.kr/{n}") for n in "abc"]
+    res = rag.sync_documents(pages, session=S([]), embedder=emb)
+    assert res.added == 3 and len(calls) == 3 and len(commits) == 3
+
+
+def test_embed_retry_on_rate_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    import time
+
+    monkeypatch.setattr(time, "sleep", lambda _s: None)
+
+    class Err(Exception):
+        code = 429
+
+    class Client:
+        n = 0
+
+        class models:
+            @staticmethod
+            def embed_content(**_k: Any) -> str:
+                Client.n += 1
+                if Client.n < 3:
+                    raise Err()
+                return "ok"
+
+    assert rag._embed_with_retry(Client, "m", ["x"], None) == "ok" and Client.n == 3
+
+    class Bad(Exception):
+        code = 400
+
+    class Client2:
+        class models:
+            @staticmethod
+            def embed_content(**_k: Any) -> str:
+                raise Bad()
+
+    with pytest.raises(Bad):
+        rag._embed_with_retry(Client2, "m", ["x"], None)
