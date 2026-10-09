@@ -24,7 +24,7 @@ def _fake_session() -> Iterator[object]:
 
 
 def test_batches_require_internal_secret() -> None:
-    for path in ("/api/v1/cron/detection-scan", "/api/v1/cron/prediction-update"):
+    for path in ("/api/v1/cron/detection-scan", "/api/v1/cron/prediction-update", "/api/v1/cron/crawl-notices"):
         assert client.post(path).status_code == 401
         assert client.post(path, headers={"X-Internal-Secret": "wrong"}).status_code == 401
 
@@ -61,3 +61,24 @@ def test_prediction_update_passes_dry_run(monkeypatch: pytest.MonkeyPatch) -> No
     assert res.status_code == 200
     assert res.json() == {"predictions": 2}
     assert seen["dry_run"] is False
+
+
+def test_crawl_notices_passes_dry_run_and_maps_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: dict[str, Any] = {}
+
+    def fake_run(db: object, dry_run: bool = False) -> dict[str, Any]:
+        seen["dry_run"] = dry_run
+        return {"fetched": 3}
+
+    monkeypatch.setattr(cron_mod, "get_session", _fake_session)
+    monkeypatch.setattr(cron_mod, "run_notice_crawl", fake_run)
+    res = client.post("/api/v1/cron/crawl-notices?dry_run=true", headers=HEADERS)
+    assert res.status_code == 200 and res.json() == {"fetched": 3}
+    assert seen["dry_run"] is True
+
+    def failing(db: object, dry_run: bool = False) -> dict[str, Any]:
+        raise cron_mod.NoticeError("HTTP 404")
+
+    monkeypatch.setattr(cron_mod, "run_notice_crawl", failing)
+    res = client.post("/api/v1/cron/crawl-notices", headers=HEADERS)
+    assert res.status_code == 502

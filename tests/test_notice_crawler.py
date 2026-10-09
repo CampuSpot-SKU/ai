@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any
 
 import pytest
@@ -82,3 +83,74 @@ def test_doctype_and_meta_junk_is_removed() -> None:
     rec = nc.parse_item(_item(9, "독감", html))
     assert "DTD" not in rec["body"] and "PUBLIC" not in rec["body"]
     assert "독감 예방접종 실시 안내" in rec["body"]
+
+
+# ---------------------------------------------------------------- 매일 증분 수집 (1-14)
+
+
+def test_since_from_latest_uses_korean_date_of_latest_notice() -> None:
+    # UTC 10/8 16:00 = 한국 10/9 01:00 → 한국 날짜로 10/9부터 다시 받는다
+    assert nc.since_from_latest(datetime(2026, 10, 8, 16, 0, tzinfo=UTC)) == "2026-10-09"
+    naive = datetime(2026, 10, 8, 10, 0)  # noqa: DTZ001 — 시간대 없는 값도 UTC로 본다
+    assert nc.since_from_latest(naive) == "2026-10-08"
+
+
+def test_since_from_latest_without_notices_falls_back() -> None:
+    assert nc.since_from_latest(None, backfill_days=30) == nc.default_since(30)
+
+
+def test_collect_allow_empty() -> None:
+    def fetcher(url: str) -> tuple[Any, dict[str, str]]:
+        return [], {"x-wp-totalpages": "1"}
+
+    assert nc.collect("2026-10-09", fetcher=fetcher, allow_empty=True) == []
+    with pytest.raises(nc.NoticeError):
+        nc.collect("2026-10-09", fetcher=fetcher)
+
+
+class _Scalar:
+    def __init__(self, value: Any) -> None:
+        self.value = value
+
+    def scalar(self) -> Any:
+        return self.value
+
+
+class _FakeDb:
+    def execute(self, *_a: Any, **_k: Any) -> _Scalar:
+        return _Scalar(datetime(2026, 10, 1, 1, 0, tzinfo=UTC))
+
+
+def _one_notice_fetcher(url: str) -> tuple[Any, dict[str, str]]:
+    return [_item(9, "새 공지", "<p>본문입니다 본문입니다 본문입니다</p>", day="2026-10-02")], {
+        "x-wp-totalpages": "1"
+    }
+
+
+def test_run_notice_crawl_dry_run_only_counts(monkeypatch: pytest.MonkeyPatch) -> None:
+    def boom(*_a: Any, **_k: Any) -> None:
+        raise AssertionError("dry_run에서는 DB에 쓰면 안 됨")
+
+    monkeypatch.setattr(rag, "sync_documents", boom)
+    res = nc.run_notice_crawl(_FakeDb(), dry_run=True, fetcher=_one_notice_fetcher)
+    assert res == {"since": "2026-10-01", "fetched": 1, "dry_run": True}
+
+
+def test_run_notice_crawl_syncs_pages(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: dict[str, Any] = {}
+
+    def fake_sync(pages: Any, **kw: Any) -> rag.SyncResult:
+        seen["titles"] = [p.title for p in pages]
+        seen["doc_type"] = kw["doc_type"]
+        return rag.SyncResult(added=1, chunks=2)
+
+    monkeypatch.setattr(rag, "sync_documents", fake_sync)
+    res = nc.run_notice_crawl(_FakeDb(), fetcher=_one_notice_fetcher)
+    assert seen == {"titles": ["새 공지"], "doc_type": rag.DOC_TYPE_NOTICE}
+    assert res["added"] == 1 and res["chunks"] == 2 and res["unchanged"] == 0
+
+
+def test_run_notice_crawl_no_new_notices_skips_sync(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(rag, "sync_documents", lambda *a, **k: (_ for _ in ()).throw(AssertionError()))
+    res = nc.run_notice_crawl(_FakeDb(), fetcher=lambda u: ([], {"x-wp-totalpages": "1"}))
+    assert res["fetched"] == 0 and "added" not in res

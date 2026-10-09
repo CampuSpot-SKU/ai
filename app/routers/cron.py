@@ -7,10 +7,11 @@ SLA 체크는 reports 도메인이라 backend/app/routers/cron.py에 그대로 �
 """
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from ai.db import get_session
 from ai.detection import run_detection
+from ai.notice_crawler import NoticeError, run_notice_crawl
 from ai.prediction import run_prediction
 from app.deps import verify_internal_secret
 
@@ -32,6 +33,10 @@ def prediction_update(dry_run: bool = False) -> dict[str, Any]:
 
 
 @router.post("/cron/crawl-notices")
-def crawl_notices():
-    # TODO: ai.notice_crawler 모듈 호출
-    raise NotImplementedError
+def crawl_notices(dry_run: bool = False) -> dict[str, Any]:
+    """학교 새 공지를 받아 검색 자료(RAG)에 넣는다(1-14). 매일 1회."""
+    try:
+        with get_session() as db:
+            return run_notice_crawl(db, dry_run=dry_run)
+    except NoticeError as e:
+        raise HTTPException(status_code=502, detail=f"공지 수집 실패: {e}") from None

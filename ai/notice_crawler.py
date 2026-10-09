@@ -20,7 +20,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections.abc import Callable
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -132,8 +132,10 @@ def collect(
     *,
     fetcher: JsonFetcher | None = None,
     delay: float = 1.0,
+    allow_empty: bool = False,
 ) -> list[dict[str, Any]]:
-    """since(YYYY-MM-DD) 이후 공지를 오래된 것부터 전부 받는다. 하나라도 실패하면 예외."""
+    """since(YYYY-MM-DD) 이후 공지를 오래된 것부터 전부 받는다. 하나라도 실패하면 예외.
+    allow_empty=True면 새 공지가 0건이어도 오류로 보지 않는다(매일 증분 수집용)."""
     fetch = fetcher or fetch_json
     if fetcher is None:
         rp = ps.load_robots()
@@ -157,7 +159,7 @@ def collect(
         page += 1
         if fetcher is None and page <= total_pages:
             time.sleep(delay)
-    if not records:
+    if not records and not allow_empty:
         raise NoticeError(f"{since} 이후 공지를 한 건도 못 받았습니다.")
     return records
 
@@ -211,3 +213,50 @@ def summarize(records: list[dict[str, Any]]) -> list[str]:
     lines += [f"  {k}: {v}건" for k, v in sorted(by_cat.items(), key=lambda kv: -kv[1])]
     lines.append(f"  본문이 거의 없는 공지(제목으로만 검색): {short}건")
     return lines
+
+
+# ---------------------------------------------------------------- 매일 증분 수집 (DB 기준)
+
+
+def since_from_latest(latest: datetime | None, *, backfill_days: int = 30) -> str:
+    """DB에 있는 가장 최근 공지의 한국 날짜(당일부터 다시 받아 겹침은 '변경 없음'으로 건너뜀).
+    공지가 하나도 없으면 backfill_days일 전."""
+    if latest is None:
+        return default_since(backfill_days)
+    if latest.tzinfo is None:
+        latest = latest.replace(tzinfo=UTC)
+    return latest.astimezone(KST).date().isoformat()
+
+
+def latest_notice_time(db: Any) -> datetime | None:
+    from sqlalchemy import text
+
+    return db.execute(  # type: ignore[no-any-return]
+        text(
+            "SELECT max(published_at) FROM admin_reg_documents "
+            "WHERE doc_type = CAST(:t AS doc_type)"
+        ),
+        {"t": rag.DOC_TYPE_NOTICE},
+    ).scalar()
+
+
+def run_notice_crawl(
+    db: Any,
+    dry_run: bool = False,
+    *,
+    fetcher: JsonFetcher | None = None,
+    embedder: rag.Embedder = rag.embed_texts,
+) -> dict[str, Any]:
+    """새 공지를 받아 DB에 넣는다(1-14). 같은 날 여러 번 돌려도 같은 결과(변경 없는 공지는 건너뜀).
+    dry_run이면 받아서 몇 건인지만 세고 임베딩·DB 쓰기는 하지 않는다."""
+    since = since_from_latest(latest_notice_time(db))
+    records = collect(since, fetcher=fetcher, allow_empty=True)
+    pages = to_pages(records)
+    result: dict[str, Any] = {"since": since, "fetched": len(records), "dry_run": dry_run}
+    if dry_run or not pages:
+        return result
+    res = rag.sync_documents(pages, session=db, embedder=embedder, doc_type=rag.DOC_TYPE_NOTICE)
+    result.update(
+        added=res.added, updated=res.updated, unchanged=res.unchanged, chunks=res.chunks
+    )
+    return result
