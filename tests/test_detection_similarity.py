@@ -97,14 +97,30 @@ def test_never_merges_across_building_or_category() -> None:
     assert len(group_points(pts, 0.5)) == 3
 
 
-def test_chain_links_far_ends() -> None:
+def test_chain_does_not_link_far_ends() -> None:
     a_c = cosine_distance(LEAK_A, LEAK_C)
     a_b = cosine_distance(LEAK_A, LEAK_B)
     b_c = cosine_distance(LEAK_B, LEAK_C)
     limit = max(a_b, b_c) + 1e-9
-    assert a_c > limit  # A와 C는 직접 기준 밖이지만
+    assert a_c > limit  # A와 C는 직접 기준 밖이고
     pts = [_p("a", 0, "화장실", LEAK_A), _p("b", 1, "남자화장실", LEAK_B), _p("c", 2, "세면대", LEAK_C)]
-    assert len(group_points(pts, limit)) == 1  # B를 거쳐 한 묶음
+    sizes = sorted(len(g) for g in group_points(pts, limit))
+    assert sizes == [1, 2]  # B를 거쳐도 평균이 기준 밖이면 C는 따로
+
+
+def test_bridge_sentence_does_not_merge_two_clusters() -> None:
+    bridge = (0.7, 0.7, 0.0)  # LEAK_A·OTHER 양쪽과 중간 거리
+    pts = [
+        _p("a1", 0, "화장실", LEAK_A),
+        _p("a2", 1, "화장실", LEAK_A),
+        _p("o1", 2, "엘리베이터", OTHER),
+        _p("o2", 3, "엘리베이터", OTHER),
+        _p("x", 4, "화장실 앞", bridge),
+    ]
+    limit = cosine_distance(LEAK_A, bridge) + 1e-9
+    groups = group_points(pts, limit)
+    assert sorted(len(g) for g in groups) == [2, 3]
+    assert all({p.detail for p in g} != {"화장실", "엘리베이터"} for g in groups)
 
 
 def test_group_key_uses_most_common_detail_then_earliest() -> None:

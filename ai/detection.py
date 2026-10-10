@@ -99,6 +99,7 @@ class DetectionResult:
     embedding_error: bool = False
     similarity_distance: float = 0.0
     dry_run: bool = False
+    explain: list[dict[str, Any]] | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -113,6 +114,7 @@ class DetectionResult:
             "embedding_error": self.embedding_error,
             "similarity_distance": self.similarity_distance,
             "dry_run": self.dry_run,
+            **({"explain": self.explain} if self.explain is not None else {}),
         }
 
 
@@ -194,12 +196,44 @@ def _components(size: int, linked: Callable[[int, int], bool]) -> list[list[int]
     return list(members.values())
 
 
+def _average_distance(a: Sequence[ReportPoint], b: Sequence[ReportPoint]) -> float | None:
+    """두 묶음 사이 평균 코사인 거리. 양쪽 모두 임베딩이 있는 쌍만 센다(하나도 없으면 None)."""
+    total, n = 0.0, 0
+    for x in a:
+        if x.embedding is None:
+            continue
+        for y in b:
+            if y.embedding is None:
+                continue
+            total += cosine_distance(x.embedding, y.embedding)
+            n += 1
+    return total / n if n else None
+
+
+def _merge_by_average(clusters: list[list[ReportPoint]], limit: float) -> list[list[ReportPoint]]:
+    """평균 연결: 평균 거리가 가장 가까운 두 묶음부터 `limit` 이하일 때까지 합친다.
+    다리 역할을 하는 문장 하나로 서로 다른 묶음이 이어 붙는 것(연쇄)을 막는다."""
+    groups = [list(c) for c in clusters]
+    while len(groups) > 1:
+        best: tuple[float, int, int] | None = None
+        for i in range(len(groups)):
+            for j in range(i + 1, len(groups)):
+                d = _average_distance(groups[i], groups[j])
+                if d is not None and d <= limit and (best is None or d < best[0]):
+                    best = (d, i, j)
+        if best is None:
+            break
+        _, i, j = best
+        groups[i] = groups[i] + groups[j]
+        del groups[j]
+    return groups
+
+
 def group_points(
     points: Sequence[ReportPoint], max_distance: float | None = None
 ) -> list[list[ReportPoint]]:
-    """같은 곳으로 볼 신고끼리 묶는다. 건물·카테고리가 같은 신고 안에서
-    세부위치 표기가 같거나, (`max_distance`가 있으면) 둘 다 임베딩이 있고 거리가 `max_distance` 이하면 한 묶음.
-    A~B, B~C가 가까우면 A~C가 멀어도 한 묶음(연쇄)."""
+    """같은 곳으로 볼 신고끼리 묶는다. 건물·카테고리가 같은 신고 안에서 세부위치 표기가 같으면 먼저 한 묶음,
+    (`max_distance`가 있으면) 그 묶음끼리 임베딩 평균 거리가 `max_distance` 이하일 때 합친다(평균 연결)."""
     limit = max_distance if max_distance is not None and max_distance > 0 else None
     buckets: dict[tuple[str, str], list[ReportPoint]] = defaultdict(list)
     for p in points:
@@ -209,18 +243,41 @@ def group_points(
     for bucket_key in sorted(buckets):
         bucket = sorted(buckets[bucket_key], key=lambda p: (p.created_at, p.id))
 
-        def linked(x: int, y: int, bucket: list[ReportPoint] = bucket) -> bool:
-            a, b = bucket[x], bucket[y]
-            if a.detail == b.detail:
-                return True
-            if limit is None or a.embedding is None or b.embedding is None:
-                return False
-            return cosine_distance(a.embedding, b.embedding) <= limit
+        def same_detail(x: int, y: int, b: list[ReportPoint] = bucket) -> bool:
+            return b[x].detail == b[y].detail
 
-        for idx_group in _components(len(bucket), linked):
-            groups.append([bucket[x] for x in idx_group])
+        same = _components(len(bucket), same_detail)
+        base = [[bucket[x] for x in idx] for idx in same]
+        groups.extend(_merge_by_average(base, limit) if limit is not None else base)
+    for g in groups:
+        g.sort(key=lambda p: (p.created_at, p.id))
     groups.sort(key=group_key)
     return groups
+
+
+def explain_pairs(points: Sequence[ReportPoint], top: int = 40) -> list[dict[str, Any]]:
+    """기준값을 고를 때 보는 자료: 건물·카테고리가 같고 세부위치 표기가 다른 신고 쌍을 거리 가까운 순으로."""
+    buckets: dict[tuple[str, str], list[ReportPoint]] = defaultdict(list)
+    for p in points:
+        if p.embedding is not None:
+            buckets[(p.building_id, p.category_id)].append(p)
+    rows: list[dict[str, Any]] = []
+    for bucket in buckets.values():
+        for i, a in enumerate(bucket):
+            for b in bucket[i + 1 :]:
+                if a.detail == b.detail or a.embedding is None or b.embedding is None:
+                    continue
+                rows.append(
+                    {
+                        "distance": round(cosine_distance(a.embedding, b.embedding), 4),
+                        "a": a.id,
+                        "a_detail": a.detail,
+                        "b": b.id,
+                        "b_detail": b.detail,
+                    }
+                )
+    rows.sort(key=lambda r: r["distance"])
+    return rows[:top]
 
 
 def group_key(group: Sequence[ReportPoint]) -> GroupKey:
@@ -431,7 +488,7 @@ def embed_missing_reports(
     return len(pending), False
 
 
-def run_detection(db: Any, dry_run: bool = False) -> DetectionResult:
+def run_detection(db: Any, dry_run: bool = False, explain: bool = False) -> DetectionResult:
     """탐지 배치 한 번. `dry_run`이면 계산만 하고 DB에는 쓰지 않는다. 커밋은 호출한 쪽이 한다.
 
     순서: (실행이면) 비어 있는 신고 임베딩 채우기 → 신고 읽기 → 묶기·계획 → DB 반영."""
@@ -461,6 +518,7 @@ def run_detection(db: Any, dry_run: bool = False) -> DetectionResult:
         embedding_error=embed_error,
         similarity_distance=max_distance if use_embedding else 0.0,
         dry_run=dry_run,
+        explain=explain_pairs(points) if explain else None,
     )
     if not dry_run:
         apply_plan(db, plan)

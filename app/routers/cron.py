@@ -19,10 +19,10 @@ router = APIRouter(dependencies=[Depends(verify_internal_secret)])
 
 
 @router.post("/cron/detection-scan")
-def detection_scan(dry_run: bool = False) -> dict[str, Any]:
+def detection_scan(dry_run: bool = False, explain: bool = False) -> dict[str, Any]:
     """반복 신고를 문제 후보로 묶는다(1-8). 매일 1회."""
     with get_session() as db:
-        return run_detection(db, dry_run=dry_run).as_dict()
+        return run_detection(db, dry_run=dry_run, explain=explain).as_dict()
 
 
 @router.post("/cron/prediction-update")

@@ -36,7 +36,7 @@ def test_detection_scan_passes_dry_run(monkeypatch: pytest.MonkeyPatch) -> None:
         def as_dict(self) -> dict[str, Any]:
             return {"clusters_created": 1}
 
-    def fake_run(db: object, dry_run: bool = False) -> _Result:
+    def fake_run(db: object, dry_run: bool = False, explain: bool = False) -> _Result:
         seen["dry_run"] = dry_run
         return _Result()
 
