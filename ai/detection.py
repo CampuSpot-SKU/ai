@@ -38,9 +38,11 @@ logger = logging.getLogger(__name__)
 DEFAULT_THRESHOLD_COUNT = 3
 DEFAULT_THRESHOLD_HOURS = 72
 
-# 같은 건물·카테고리에서 설명 임베딩의 코사인 거리가 이 값 이하면 같은 곳으로 본다. 데모 데이터로 조정할 값 —
+# 같은 건물·카테고리에서 설명 임베딩의 평균 코사인 거리가 이 값 이하면 같은 곳으로 본다.
+# 10/10 실데이터: 같은 내용 0~0.004, 짧은 고장 문장끼리는 서로 달라도 0.09~0.25라 보수적으로 0.05. 거짓 병합이 놓침보다 해롭다.
+# S-2 데모 데이터로 다시 확인할 값 —
 # DETECTION_SIMILARITY_DISTANCE로 덮어쓴다(0 이하면 임베딩 보조를 끈다).
-DEFAULT_SIMILARITY_DISTANCE = 0.25
+DEFAULT_SIMILARITY_DISTANCE = 0.05
 EMBED_LIMIT = 200  # 배치 한 번에 임베딩을 채울 신고 수 상한
 EMBED_TASK = "SEMANTIC_SIMILARITY"
 
