@@ -3,7 +3,10 @@ backend는 이 서비스를 HTTP로 호출 (내부 인증은 X-Internal-Secret �
 """
 from fastapi import FastAPI
 
+from app.monitoring import init_sentry
 from app.routers import chat, cron
+
+init_sentry()  # SENTRY_DSN이 있을 때만 (S-3·1-15)
 
 app = FastAPI(title="campuspot-ai")
 

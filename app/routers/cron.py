@@ -14,6 +14,7 @@ from ai.detection import run_detection
 from ai.notice_crawler import NoticeError, run_notice_crawl
 from ai.prediction import run_prediction
 from app.deps import verify_internal_secret
+from app.monitoring import report_failure
 
 router = APIRouter(dependencies=[Depends(verify_internal_secret)])
 
@@ -39,4 +40,5 @@ def crawl_notices(dry_run: bool = False) -> dict[str, Any]:
         with get_session() as db:
             return run_notice_crawl(db, dry_run=dry_run)
     except NoticeError as e:
+        report_failure("crawl_notices", e)
         raise HTTPException(status_code=502, detail=f"공지 수집 실패: {e}") from None

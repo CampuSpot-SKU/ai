@@ -1,4 +1,6 @@
-"""backend의 chat.py가 호출하는 의도분류/RAG 엔드포인트."""
+"""backend의 chat.py가 호출하는 의도분류/RAG 엔드포인트.
+
+Gemini 실패는 503으로 바꿔 backend가 대체 흐름을 쓰게 하고, 같은 실패를 Sentry에 남김(1-15, app/monitoring.py)."""
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
@@ -9,6 +11,7 @@ from ai.intent import HistoryMessage, IntentClassificationError, IntentResult, c
 from ai.judge import JudgeError, JudgeRequest, JudgeResult, judge
 from ai.say import SayError, SayRequest, SayResult, say
 from app.deps import verify_internal_secret
+from app.monitoring import report_failure
 
 router = APIRouter(dependencies=[Depends(verify_internal_secret)])
 
@@ -27,7 +30,8 @@ def classify_intent(req: ClassifyRequest) -> IntentResult:
     """
     try:
         return classify(req.text, req.history)
-    except IntentClassificationError:
+    except IntentClassificationError as e:
+        report_failure("intent", e)
         raise HTTPException(status_code=503, detail="잠시 후 다시 시도해주세요") from None
 
 
@@ -36,7 +40,8 @@ def report_say(req: SayRequest) -> SayResult:
     """신고 접수 대화 문장을 같은 뜻의 자연스러운 말투로 다듬음 (실패하면 503 → backend가 고정 문구 사용)."""
     try:
         return say(req)
-    except SayError:
+    except SayError as e:
+        report_failure("say", e)
         raise HTTPException(status_code=503, detail="문장 생성 실패") from None
 
 
@@ -45,7 +50,8 @@ def report_judge(req: JudgeRequest) -> JudgeResult:
     """신고 내용의 카테고리·영향도·긴급도·판정 이유를 판정 (실패하면 503 → backend가 규칙 기반 판정 사용)."""
     try:
         return judge(req)
-    except JudgeError:
+    except JudgeError as e:
+        report_failure("judge", e)
         raise HTTPException(status_code=503, detail="판정 실패") from None
 
 
@@ -57,7 +63,8 @@ def report_turn(req: TurnRequest) -> TurnResult:
     """
     try:
         return turn(req)
-    except AgentError:
+    except AgentError as e:
+        report_failure("agent", e)
         raise HTTPException(status_code=503, detail="대화 처리 실패") from None
 
 
@@ -71,5 +78,6 @@ def rag_answer(req: AnswerRequest) -> AnswerResult:
     try:
         with get_session() as db:
             return answer(req.question, session=db)
-    except AnswerError:
+    except AnswerError as e:
+        report_failure("rag_answer", e)
         raise HTTPException(status_code=503, detail="답변 생성 실패") from None
