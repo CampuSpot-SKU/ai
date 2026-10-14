@@ -153,10 +153,31 @@ def test_with_revision_notice_adds_sentence_and_source() -> None:
     notice = _notice("학칙 일부개정안 사전 공고", "2026-01-19")
     base = ans.AnswerResult(answer="휴학할 수 있어요.", sources=[ans._source(REG)])
     r = ans.with_revision_notice(base, [REG], [notice])
-    assert r.answer.startswith("휴학할 수 있어요.") and "1월 19일에 개정 공지가 있었어요" in r.answer
+    assert r.answer.startswith("휴학할 수 있어요.") and "1월 19일에 개정안 사전 공고가 있었어요" in r.answer
+    assert "확정된 변경은 아니고" in r.answer
     assert r.sources[-1].title == notice.title and r.sources[-1].url == notice.url
     assert r.sources[-1].as_of == "2026.1.19 게시"
     assert ans.with_revision_notice(base, [REG], []) == base
+
+
+def test_revision_kind_and_wording_by_notice_type() -> None:
+    assert ans.revision_kind("학칙 일부개정안 사전 공고") == "pre"
+    assert ans.revision_kind("서경대학교 학칙 개정안 사전공지") == "pre"
+    assert ans.revision_kind("학칙 일부개정 공포") == "promulgated"
+    assert ans.revision_kind("학칙 개정 안내") == "revised"
+    base = ans.AnswerResult(answer="휴학할 수 있어요.", sources=[ans._source(REG)])
+    promulgated = ans.with_revision_notice(base, [REG], [_notice("학칙 일부개정 공포", "2026-03-02")])
+    assert "3월 2일에 개정이 공포됐어요" in promulgated.answer and "개정 전 기준일 수 있으니" in promulgated.answer
+    plain = ans.with_revision_notice(base, [REG], [_notice("학칙 개정 안내", "2026-03-02")])
+    assert "3월 2일에 개정 공지가 있었어요" in plain.answer
+
+
+def test_promulgation_beats_newer_pre_announcement() -> None:
+    pre = _notice("학칙 일부개정안 사전 공고", "2026-09-21")
+    promulgated = _notice("서경대학교 학칙 일부개정 공포", "2026-03-02")
+    assert ans.pick_revision([REG], [pre, promulgated]) == promulgated
+    older_pre = _notice("학칙 일부개정안 사전 공고", "2026-01-19")
+    assert ans.pick_revision([REG], [pre, older_pre]) == pre
 
 
 def test_answer_adds_revision_and_survives_loader_failure(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -164,7 +185,7 @@ def test_answer_adds_revision_and_survives_loader_failure(monkeypatch: pytest.Mo
     monkeypatch.setattr(ans, "_call_gemini", lambda q, h: _g())
     notice = _notice("학칙 일부개정안 사전 공고", "2026-01-19")
     ok = ans.answer("휴학", session=object(), searcher=lambda q, **_k: [hit], revisions=lambda s: [notice])
-    assert "개정 공지가 있었어요" in ok.answer and len(ok.sources) == 2
+    assert "사전 공고가 있었어요" in ok.answer and len(ok.sources) == 2
 
     def boom(_s: Any) -> list[ans.RevisionNotice]:
         raise RuntimeError("db down")

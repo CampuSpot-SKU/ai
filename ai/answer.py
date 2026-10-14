@@ -198,8 +198,21 @@ def _aware(when: datetime) -> datetime:
     return when if when.tzinfo else when.replace(tzinfo=UTC)
 
 
+def revision_kind(title: str) -> str:
+    """공지 제목으로 종류를 나눈다: pre(사전 공고·공지, 의견 수렴 중) / promulgated(공포) / revised(그 밖의 개정)."""
+    flat = title.replace(" ", "")
+    if "사전공" in flat:
+        return "pre"
+    return "promulgated" if "공포" in flat else "revised"
+
+
+def _rank(n: RevisionNotice) -> tuple[bool, datetime]:
+    return revision_kind(n.title) == "promulgated", _aware(n.published_at)
+
+
 def pick_revision(used: list[rag.Hit], notices: list[RevisionNotice]) -> RevisionNotice | None:
-    """답변 근거가 된 규정(학칙·규정집)의 기준일 이후에 올라온, 그 규정 이름이 제목에 있는 개정 공지 중 가장 최근 것."""
+    """답변 근거가 된 규정(학칙·규정집)의 기준일 이후에 올라온, 그 규정 이름이 제목에 있는 개정 공지 중 하나.
+    공포가 있으면 그것을(내용이 바뀌었을 수 있어서), 없으면 가장 최근 것을 고른다."""
     best: RevisionNotice | None = None
     for h in used:
         if h.doc_type != rag.DOC_TYPE_REGULATION or not h.published_at:
@@ -208,7 +221,7 @@ def pick_revision(used: list[rag.Hit], notices: list[RevisionNotice]) -> Revisio
         name = regulation_name(h.title)
         for n in notices:
             newer = _aware(n.published_at) > base and _mentions(n.title, name)
-            if newer and (best is None or n.published_at > best.published_at):
+            if newer and (best is None or _rank(n) > _rank(best)):
                 best = n
     return best
 
@@ -221,10 +234,22 @@ def with_revision_notice(
     if notice is None:
         return result
     when = _aware(notice.published_at).astimezone(KST)
-    note = (
-        f"\n\n참고: 이 규정은 {when.month}월 {when.day}일에 개정 공지가 있었어요. "
-        "최신 내용은 아래 공지에서 확인해 주세요."
-    )
+    kind = revision_kind(notice.title)
+    if kind == "promulgated":
+        note = (
+            f"\n\n참고: 이 규정은 {when.month}월 {when.day}일에 개정이 공포됐어요. "
+            "위 내용은 개정 전 기준일 수 있으니 바뀐 내용은 아래 공지에서 확인해 주세요."
+        )
+    elif kind == "pre":
+        note = (
+            f"\n\n참고: 이 규정은 {when.month}월 {when.day}일에 개정안 사전 공고가 있었어요. "
+            "의견 수렴 단계라 확정된 변경은 아니고, 개정안 내용은 아래 공지에서 확인할 수 있어요."
+        )
+    else:
+        note = (
+            f"\n\n참고: 이 규정은 {when.month}월 {when.day}일에 개정 공지가 있었어요. "
+            "최신 내용은 아래 공지에서 확인해 주세요."
+        )
     sources = [
         *result.sources,
         Source(title=notice.title, url=notice.url, as_of=f"{when.year}.{when.month}.{when.day} 게시"),
