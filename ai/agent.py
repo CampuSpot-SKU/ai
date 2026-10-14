@@ -17,11 +17,12 @@ import json
 import logging
 import os
 import re
+import threading
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from google.genai import types
+from google.genai import Client, types
 from pydantic import BaseModel, Field, ValidationError
 
 from ai.intent import _client
@@ -402,10 +403,20 @@ def validate(g: GeminiTurn, req: TurnRequest) -> TurnResult:
     return TurnResult(action=g.action, message=message, choices=choices, state=state)
 
 
-@lru_cache
-def _shared_client():  # type: ignore[no-untyped-def]
-    """호출마다 새 클라이언트를 만들면 동시 요청 중에 앞선 클라이언트가 닫혀 버려서 하나를 재사용한다."""
-    return _client()
+_client_lock = threading.Lock()
+_client_instance: Client | None = None
+
+
+def _shared_client() -> Client:
+    """호출마다 새 클라이언트를 만들면 동시 요청 중에 앞선 클라이언트가 닫혀 버려서 하나를 재사용한다.
+    lru_cache로는 처음에 동시에 부르면 여러 개가 만들어지고 밀린 쪽이 버려지며 닫힐 수 있어(평가 로그의
+    'client has been closed' 3건과 맞음, 추정) 잠금으로 한 번만 만든다."""
+    global _client_instance
+    if _client_instance is None:
+        with _client_lock:
+            if _client_instance is None:
+                _client_instance = _client()
+    return _client_instance
 
 
 def _call_gemini(req: TurnRequest, temperature: float = 0.0) -> GeminiTurn:
