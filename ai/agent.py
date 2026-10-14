@@ -210,6 +210,24 @@ def _missing_floor_question(state: "AgentState", req: TurnRequest) -> str | None
     return f"{state.building}은 {info.floors if info else ''}이 있는 걸로 알아요. {label}이 맞나요?"
 
 
+_GENDER_WORDS = ("남자", "여자", "남녀", "남/여", "남성", "여성")
+
+
+def _gender_question(state: "AgentState", req: TurnRequest, message: str) -> str | None:
+    """화장실 신고인데 남/여를 모르고 아직 묻지도 않았으면, 모델이 빼먹은 남/여 질문 한 문장을 덧붙인다.
+    프롬프트 규칙만으로는 건물을 모를 때 일부 응답(평가 G15·배포 사이트 6번 중 2번)에서 빠져서 코드가 보장한다."""
+    place = state.place or ""
+    if "화장실" not in place or not state.plausible:
+        return None
+    if any(w in place for w in ("엘리베이터", "엘레베이터", "엘베", "승강기")):
+        return None
+    if any(w in message for w in _GENDER_WORDS):
+        return None
+    if any(w in m.content for m in req.conversation for w in _GENDER_WORDS):  # 학생이 말했거나 이미 물었음
+        return None
+    return "남자 화장실인지 여자 화장실인지도 알려주세요."
+
+
 def impossible_nesting(state: "AgentState") -> bool:
     inner = (state.place or "").replace(" ", "")
     outer = (state.contained_in or "").replace(" ", "")
@@ -395,6 +413,8 @@ def validate(g: GeminiTurn, req: TurnRequest) -> TurnResult:
             raise AgentError("확인 문장에 접수 여부 질문이 없음")
         if g.action == "ask" and not ("?" in message or "까요" in message or "세요" in message):
             raise AgentError("질문 형식")
+    if g.action == "ask" and not choices and (add := _gender_question(state, req, message)) and len(message + add) < MAX_MESSAGE_LEN:
+        message = f"{message} {add}"
     if g.action in ("ask", "confirm", "decline"):
         if _is_instruction(req) and "바꿀 수 없" not in message:
             message = INSTRUCTION_NOTE + message

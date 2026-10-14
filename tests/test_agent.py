@@ -274,3 +274,22 @@ def test_unknown_professor_is_checked_twice_then_confirmed_with_staff_note() -> 
     # 학생이 이름을 고치면 더 묻지 않는다
     fixed = AgentState(problem="박지원 교수실 불", problem_clear=True, symptom="불이 났어요", place="교수실", building="북악관")
     assert validate(_g(state=fixed, message="박지원 교수실에 불이 난 문제로 정리했어요. 이대로 접수할까요?"), first).action == "confirm"
+
+
+def test_toilet_ask_gets_gender_question_when_model_forgets() -> None:
+    state = AgentState(problem="휴지가 없어요", problem_clear=True, place="화장실")
+    g = _g(action="ask", message="어느 건물의 화장실인지 알려주세요.", choices=[], state=state)
+    out = validate(g, _req("화장실 휴지가 없어요"))
+    assert out.action == "ask" and "남자" in out.message and "여자" in out.message
+    # 학생이 이미 말했으면 덧붙이지 않음
+    assert "여자 화장실인지" not in validate(g, _req("남자 화장실 휴지가 없어요")).message
+    # 이미 물었는데 학생이 모른다고 했으면 다시 붙이지 않음
+    asked = [
+        TurnMessage(role="user", content="화장실 휴지가 없어요"),
+        TurnMessage(role="assistant", content="몇 층 남자 화장실인가요, 여자 화장실인가요?"),
+        TurnMessage(role="user", content="모르겠어요"),
+    ]
+    assert "여자 화장실인지" not in validate(g, _req(conversation=asked)).message
+    # 화장실이 아닌 설비·선택지가 있는 질문은 그대로 둠
+    lift = AgentState(problem="고장", problem_clear=True, place="엘리베이터")
+    assert validate(_g(action="ask", message="어느 건물의 엘리베이터인가요?", choices=[], state=lift), _req("엘베 고장")).message == "어느 건물의 엘리베이터인가요?"
