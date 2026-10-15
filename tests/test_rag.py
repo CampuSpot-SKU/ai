@@ -254,3 +254,32 @@ def test_embed_retry_on_rate_limit(monkeypatch: pytest.MonkeyPatch) -> None:
 
     with pytest.raises(Bad):
         rag._embed_with_retry(Client2, "m", ["x"], None)
+
+
+def test_sync_regulation_reapplies_when_only_the_base_date_changed() -> None:
+    from datetime import UTC, datetime
+
+    pytest.importorskip("sqlalchemy")
+    page = rag.Page(
+        slug="r1",
+        title="학칙 제1조(목적)",
+        source_url="https://x.kr/r1",
+        body=f"① {LONG}",
+        doc_type=rag.DOC_TYPE_REGULATION,
+        published_at="2026-10-01T00:00:00Z",
+        date_label="2026.10.1",
+    )
+    old = SimpleNamespace(
+        id="1", source_url=page.source_url, title=page.title, content=page.body,
+        published_at=datetime(2025, 10, 1, tzinfo=UTC),
+    )
+    session = FakeSession([old])
+    res = rag.sync_documents([page], session=session, embedder=_fake_embed, doc_type=rag.DOC_TYPE_REGULATION)
+    assert (res.updated, res.unchanged) == (1, 0)  # 본문은 같아도 기준일이 달라 다시 적재
+    assert any("published_at = COALESCE" in s for s in session.sql)
+
+    same = SimpleNamespace(**{**old.__dict__, "published_at": datetime(2026, 10, 1, tzinfo=UTC)})
+    res = rag.sync_documents(
+        [page], session=FakeSession([same]), embedder=_fake_embed, doc_type=rag.DOC_TYPE_REGULATION
+    )
+    assert (res.updated, res.unchanged) == (0, 1)

@@ -293,3 +293,10 @@ def test_toilet_ask_gets_gender_question_when_model_forgets() -> None:
     # 화장실이 아닌 설비·선택지가 있는 질문은 그대로 둠
     lift = AgentState(problem="고장", problem_clear=True, place="엘리베이터")
     assert validate(_g(action="ask", message="어느 건물의 엘리베이터인가요?", choices=[], state=lift), _req("엘베 고장")).message == "어느 건물의 엘리베이터인가요?"
+
+
+def test_prompt_tells_agent_to_wait_when_student_says_hold_on() -> None:
+    from pathlib import Path
+
+    text = (Path(agent_mod.__file__).parent / "prompts" / "report_agent.md").read_text(encoding="utf-8")
+    assert "잠시만" in text and "다시 읽어주지 말고" in text

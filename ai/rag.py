@@ -401,9 +401,16 @@ def _write_group(
             session.execute(
                 text(
                     "UPDATE admin_reg_documents SET title = :title, content = :content, "
-                    "article_no = :art, updated_at = now() WHERE id = :id"
+                    "article_no = :art, published_at = COALESCE(CAST(:pub AS timestamptz), published_at), "
+                    "updated_at = now() WHERE id = :id"
                 ),
-                {"title": page.title, "content": page.body, "art": page.article_no, "id": doc_id},
+                {
+                    "title": page.title,
+                    "content": page.body,
+                    "art": page.article_no,
+                    "pub": page.published_at,
+                    "id": doc_id,
+                },
             )
             session.execute(
                 text("DELETE FROM admin_faq_embeddings WHERE document_id = :id"), {"id": doc_id}
@@ -423,6 +430,22 @@ def _write_group(
         commit()
 
 
+def _date_changed(row: Any, page: Page, doc_type: str) -> bool:
+    """학칙·규정은 본문이 같아도 기준일(시행일·개정일)이 바뀌면 칩·청크 머리말의 날짜가 달라지므로 다시 적재한다.
+    공지는 게시 시각이 바뀌지 않으니 보지 않는다."""
+    if doc_type != DOC_TYPE_REGULATION or not page.published_at:
+        return False
+    stored = getattr(row, "published_at", None)
+    if stored is None:
+        return True
+    want = datetime.fromisoformat(page.published_at)
+    if want.tzinfo is None:
+        want = want.replace(tzinfo=UTC)
+    if stored.tzinfo is None:
+        stored = stored.replace(tzinfo=UTC)
+    return stored != want
+
+
 def sync_documents(
     pages: list[Page],
     *,
@@ -440,7 +463,7 @@ def sync_documents(
         row.source_url: row
         for row in session.execute(
             text(
-                "SELECT id, source_url, title, content FROM admin_reg_documents "
+                "SELECT id, source_url, title, content, published_at FROM admin_reg_documents "
                 "WHERE doc_type = CAST(:t AS doc_type)"
             ),
             {"t": doc_type},
@@ -452,7 +475,12 @@ def sync_documents(
         if not chunks:
             continue
         row = existing.get(page.source_url)
-        if row is not None and row.content == page.body and row.title == page.title:
+        if (
+            row is not None
+            and row.content == page.body
+            and row.title == page.title
+            and not _date_changed(row, page, doc_type)
+        ):
             result.unchanged += 1
             continue
         todo.append((page, chunks, row))
