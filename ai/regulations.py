@@ -258,6 +258,22 @@ def strip_revisions(body: str) -> str:
     return re.sub(r"[ \t]+\n", "\n", out).strip()
 
 
+_FULL_DATE = re.compile(r"(?<!\d)(20\d{2})\.\s*(\d{1,2})\.\s*(\d{1,2})")
+_MARK_PAREN = re.compile(r"\(\s*(?:본?조\s*)?(?:전\s*문\s*)?(?:개\s*정|신\s*설|제\s*정|삭\s*제)[^)]*\)")
+
+
+def latest_revision(body: str, after_iso: str) -> str | None:
+    """조 본문의 제·개정 이력 괄호에서 기준일(after_iso)보다 늦은 연도 4자리 날짜 중 가장 늦은 것(YYYY-MM-DD).
+    기준일 뒤에 공지로 일부 개정된 조는 그 개정일을 따로 보여주려고 쓴다. 이력의 옛 날짜는 연도가 두 자리라 무시된다."""
+    best: str | None = None
+    for mark in _MARK_PAREN.findall(body):
+        for y, mo, d in _FULL_DATE.findall(mark):
+            iso = f"{y}-{int(mo):02d}-{int(d):02d}"
+            if iso > after_iso and (best is None or iso > best):
+                best = iso
+    return best
+
+
 def book_title(name: str, a: Article) -> str:
     return f"{name} {a.article_no}({a.title})"
 
@@ -275,6 +291,11 @@ def book_pages(regs: list[Regulation], base_iso: str, base_label: str) -> list[r
                 tail = f"{key}-{a.article_no}-{n}"
             url = f"{RULES_URL}#규정집-{tail}"
             used.add(url)
+            iso, label = base_iso, base_label
+            amended = latest_revision(a.body, base_iso)
+            if amended:  # 규정집 기준일 뒤에 개정된 조 — 칩·머리말에 그 개정일을 보여준다
+                y, mo, d = amended.split("-")
+                iso, label = amended, f"{y}.{int(mo)}.{int(d)} 개정 반영 · {base_label}"
             pages.append(
                 rag.Page(
                     slug=f"gyujeongjip-{r_idx:03d}-{a.article_no}" + (f"-{n}" if n > 1 else ""),
@@ -282,9 +303,9 @@ def book_pages(regs: list[Regulation], base_iso: str, base_label: str) -> list[r
                     source_url=url,
                     body=strip_revisions(_collapse_blank(a.body)) or a.body,
                     doc_type=DOC_TYPE_REG,
-                    published_at=f"{base_iso}T00:00:00Z",
+                    published_at=f"{iso}T00:00:00Z",
                     category=" · ".join(p for p in (a.chapter, a.section) if p),
-                    date_label=base_label,
+                    date_label=label,
                     article_no=a.article_no,
                 )
             )

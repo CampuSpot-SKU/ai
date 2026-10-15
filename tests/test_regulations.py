@@ -179,7 +179,7 @@ def test_book_pages_titles_urls_and_chunk_head() -> None:
 
 def test_real_book_counts() -> None:
     pages = reg.load_book_pages()
-    assert 3400 <= len(pages) <= 3500  # 2024.9.1 규정집: 규정 229개, 조 3,456개(삭제 41개 제외)
+    assert 3400 <= len(pages) <= 3500  # 2024.9.1 규정집(폐지된 시행세칙 4개 제외): 규정 225개, 조 3,417개
     assert len({p.source_url for p in pages}) == len(pages)
     assert all(p.body.strip() for p in pages)
     assert not any("서경대학교 학칙 제" in p.title for p in pages)
@@ -208,3 +208,27 @@ def test_book_pages_have_no_revision_tails() -> None:
     pages = reg.load_book_pages()
     bad = [p.title for p in pages if re.search(r"\((본?조 )?(개정|신설)\s*\d", p.body)]
     assert bad == []
+
+
+def test_latest_revision_picks_only_dates_after_base() -> None:
+    body = "① 가.(개정 2019. 1. 1, 20. 3. 1, 2026. 9. 1)\n② 나.(신설 2024. 3. 1)\n③ (삭제 2026.10. 1)"
+    assert reg.latest_revision(body, "2024-09-01") == "2026-10-01"
+    assert reg.latest_revision("① 가.(개정 2017. 9. 1, 20. 9. 1, 24. 3. 1)", "2024-09-01") is None
+
+
+def test_amended_articles_show_their_own_date_and_abolished_rules_are_gone() -> None:
+    pages = {p.title: p for p in reg.load_book_pages()}
+    p = pages["편입학에 관한 시행세칙 제5조(학점인정 및 교과이수)"]
+    assert "별표 1" not in p.body and "별표 2에 따라" in p.body
+    assert p.published_at == "2026-09-01T00:00:00Z"
+    assert p.date_label == "2026.9.1 개정 반영 · 2024.9.1 기준 규정집"
+    assert rag.chunk_page(p)[0].text.startswith(
+        "[편입학에 관한 시행세칙 제5조(학점인정 및 교과이수) · 2026.9.1 개정 반영 · 2024.9.1 기준 규정집]"
+    )
+    other = pages["편입학에 관한 시행세칙 제1조(목적)"]
+    assert other.date_label == "2024.9.1 기준 규정집" and other.published_at.startswith("2024-09-01")
+    assert "제39조 제3항" in pages["계절학기 운영에 관한 시행세칙 제1조(목적)"].body
+    assert "학칙 제51조에 의거" in pages["사회봉사활동에 관한 시행세칙 제5조(학점인정 절차)"].body
+    assert "학적부에 수록한다." in pages["국내 교류대학 학점인정에 관한 시행세칙 제7조(학점인정)"].body
+    gone = ("수강신청에 관한 시행세칙", "융합전공에 관한 시행세칙", "자기설계전공에 관한 시행세칙", "연계전공에 관한 시행세칙")
+    assert not [t for t in pages if t.startswith(gone)]
