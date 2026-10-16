@@ -7,11 +7,15 @@
 
 근거가 없으면 지어내지 않고 안내 문구 + `sources: []`를 돌려준다(Gemini 호출 없이).
 실패 대응 (명세서 11장): Gemini 호출 1회 재시도 → 그래도 실패하면 AnswerError → backend가 503 처리.
+
+실시간 스트리밍 (작업 1-22, 명세서 5-1 `/rag/answer/stream`): 같은 Gemini JSON 응답을 스트리밍으로 받아 `answer` 글자를
+나오는 대로 내보내고, 끝에서 근거 번호를 검사해 sources를 붙인다. 글자를 보낸 뒤에는 되돌릴 수 없으므로 서식 글자는 보내기 전에
+지우고 길이 상한에서 끊으며, 근거 번호가 틀리면 안내 한 줄을 덧붙인다. 첫 글자 전에 실패하면 `{"error": true}`.
 """
 import logging
 import os
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, timezone
 from difflib import SequenceMatcher
@@ -257,17 +261,21 @@ def with_revision_notice(
     return AnswerResult(answer=result.answer + note, sources=sources)
 
 
-def _call_gemini(question: str, hits: list[rag.Hit]) -> GeminiAnswer:
-    response = _client().models.generate_content(
-        model=os.environ.get("GEMINI_RAG_MODEL") or os.environ.get("GEMINI_INTENT_MODEL") or DEFAULT_MODEL,
-        contents=_build_content(question, hits),
-        config=types.GenerateContentConfig(
+def _gemini_args(question: str, hits: list[rag.Hit]) -> dict[str, Any]:
+    return {
+        "model": os.environ.get("GEMINI_RAG_MODEL") or os.environ.get("GEMINI_INTENT_MODEL") or DEFAULT_MODEL,
+        "contents": _build_content(question, hits),
+        "config": types.GenerateContentConfig(
             system_instruction=_system_prompt(),
             response_mime_type="application/json",
             response_schema=GeminiAnswer,
             temperature=0,
         ),
-    )
+    }
+
+
+def _call_gemini(question: str, hits: list[rag.Hit]) -> GeminiAnswer:
+    response = _client().models.generate_content(**_gemini_args(question, hits))
     return GeminiAnswer.model_validate_json(response.text or "")
 
 
@@ -318,3 +326,192 @@ def answer(
             last_error = e
         logger.warning("rag answer attempt %d failed: %r", attempt, last_error)
     raise AnswerError(str(last_error)) from last_error
+
+
+# ---------------------------------------------------------------- 실시간 스트리밍 (1-22)
+
+NO_CITATION_NOTE = (
+    "\n\n근거를 확인하지 못했어요. 정확한 안내는 학교 대표번호(02-940-7114)나 학교 홈페이지에서 확인해 주세요."
+)
+CUT_OFF_NOTE = "\n\n답변이 중간에 끊겼어요. 정확한 안내는 학교 대표번호(02-940-7114)에서 확인해 주세요."
+
+_ANSWERABLE = re.compile(r'"answerable"\s*:\s*(true|false)')
+_ANSWER_START = re.compile(r'"answer"\s*:\s*"')
+_MARKDOWN_CHARS = re.compile(r"[*#`]")  # 서식 금지 규칙(validate) — 이미 보낸 글자는 못 거르므로 보내기 전에 지운다
+_SIMPLE_ESCAPES = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "\\": "\\", "/": "/", "b": "\b", "f": "\f"}
+
+
+def _answer_so_far(raw: str) -> tuple[bool | None, str, bool]:
+    """Gemini가 지금까지 보낸 JSON 조각에서 (answerable 값, `answer` 문자열 값 중 해독된 앞부분, 문자열이 닫혔는지)를 꺼낸다.
+    아직 안 온 값은 (None, "", False). 끝이 잘린 이스케이프(`\\u` 등)는 다음 조각이 올 때까지 남겨 둔다."""
+    m_ok = _ANSWERABLE.search(raw)
+    answerable = None if m_ok is None else m_ok.group(1) == "true"
+    m = _ANSWER_START.search(raw)
+    if m is None:
+        return answerable, "", False
+    out: list[str] = []
+    i = m.end()
+    while i < len(raw):
+        c = raw[i]
+        if c == '"':
+            return answerable, "".join(out), True
+        if c != "\\":
+            out.append(c)
+            i += 1
+            continue
+        if i + 1 >= len(raw):
+            break
+        nxt = raw[i + 1]
+        if nxt in _SIMPLE_ESCAPES:
+            out.append(_SIMPLE_ESCAPES[nxt])
+            i += 2
+        elif nxt == "u":
+            code = raw[i + 2 : i + 6]
+            if len(code) < 4:
+                break
+            try:
+                cp = int(code, 16)
+            except ValueError:
+                out.append("\ufffd")
+                i += 6
+                continue
+            if 0xD800 <= cp < 0xDC00:  # 앞쪽 서로게이트 — 뒤쪽까지 와야 한 글자
+                low = raw[i + 6 : i + 12]
+                if len(low) < 6:
+                    break
+                try:
+                    lo = int(low.removeprefix("\\u"), 16) if low.startswith("\\u") else -1
+                except ValueError:
+                    lo = -1
+                if 0xDC00 <= lo < 0xE000:
+                    out.append(chr(0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00)))
+                    i += 12
+                    continue
+                out.append("\ufffd")
+                i += 6
+                continue
+            out.append(chr(cp))
+            i += 6
+        else:
+            out.append(nxt)
+            i += 2
+    return answerable, "".join(out), False
+
+
+def _clean_stream_text(text: str) -> str:
+    """보낼 글자: 서식 글자 제거 + 앞뒤 공백 제거. 앞부분이 늘 다음 결과의 앞부분이라 이미 보낸 만큼 이어서 보낼 수 있다."""
+    return _MARKDOWN_CHARS.sub("", text).strip()
+
+
+def _stream_gemini(question: str, hits: list[rag.Hit]) -> Iterator[str]:
+    """Gemini JSON 응답 조각(문자열)을 오는 대로 내보낸다 — 테스트에서 가짜로 바꿔 끼움."""
+    for chunk in _client().models.generate_content_stream(**_gemini_args(question, hits)):
+        if chunk.text:
+            yield chunk.text
+
+
+@dataclass(frozen=True)
+class StreamContext:
+    """스트리밍 전 준비 결과 — DB 연결은 여기서 끝나고, 스트리밍 중에는 DB를 잡고 있지 않는다."""
+
+    question: str
+    hits: list[rag.Hit]
+    notices: list[RevisionNotice] | None  # None이면 개정 안내를 붙이지 않음(조회 실패 포함)
+
+
+def prepare_stream(
+    question: str,
+    *,
+    session: Any,
+    searcher: Searcher | None = None,
+    revisions: RevisionLoader | None = None,
+) -> StreamContext:
+    """검색 + 개정 공지 조회까지 미리 해 둔다. 검색 실패는 그대로 예외(호출한 쪽이 error 이벤트로 바꿈)."""
+    search = searcher or rag.search_hybrid
+    hits = select_hits(search(question, session=session, k=TOP_K))
+    notices: list[RevisionNotice] | None = None
+    if hits and not (session is None and revisions is None):
+        try:
+            notices = (revisions or load_revision_notices)(session)
+        except Exception:
+            logger.warning("revision notice lookup failed", exc_info=True)
+    return StreamContext(question, hits, notices)
+
+
+def _done(result_sources: list[Source]) -> dict[str, Any]:
+    return {"done": True, "sources": [s.model_dump() for s in result_sources]}
+
+
+def _finish_stream(g: GeminiAnswer, emitted: str, ctx: StreamContext) -> Iterator[dict[str, Any]]:
+    """스트리밍이 끝난 뒤 — 근거 번호 검사 → sources, 개정 안내 한 줄(있으면 글자로 더 보냄)."""
+    if any(n < 1 or n > len(ctx.hits) for n in g.used) or not g.used:
+        yield {"delta": NO_CITATION_NOTE}
+        yield _done([])
+        return
+    result = validate(g.model_copy(update={"answer": emitted}), ctx.hits)  # emitted는 이미 서식 제거·길이 제한을 거침
+    if ctx.notices is not None and result.sources:
+        try:
+            used = [ctx.hits[n - 1] for n in dict.fromkeys(g.used)]
+            result = with_revision_notice(result, used, ctx.notices) if used else result
+        except Exception:
+            logger.warning("revision notice failed", exc_info=True)
+    extra = result.answer[len(emitted) :]
+    if extra:
+        yield {"delta": extra}
+    yield _done(result.sources)
+
+
+def stream_answer(
+    ctx: StreamContext, *, on_error: Callable[[Exception], None] | None = None
+) -> Iterator[dict[str, Any]]:
+    """실시간 답변 이벤트: `{"delta": 글자}` 여러 번 → `{"done": True, "sources": [...]}`.
+    첫 글자를 보내기 전에 실패하면 1회 재시도, 그래도 안 되면 `{"error": True}`(backend가 /rag/answer로 대체).
+    글자를 보낸 뒤 실패하면 되돌릴 수 없어 안내 한 줄을 덧붙이고 sources 없이 끝낸다."""
+    if not ctx.hits:
+        yield {"delta": NO_EVIDENCE_ANSWER}
+        yield _done([])
+        return
+    emitted = ""
+    last_error: Exception | None = None
+    for attempt in (1, 2):
+        raw = ""
+        capped = False
+        try:
+            for piece in _stream_gemini(ctx.question, ctx.hits):
+                raw += piece
+                answerable, text, _closed = _answer_so_far(raw)
+                if answerable is not True:  # 근거 없음(false)이거나 아직 모름 — 글자를 보내지 않는다
+                    continue
+                target = _clean_stream_text(text)
+                if len(target) > MAX_ANSWER_LEN:
+                    target, capped = target[:MAX_ANSWER_LEN].rstrip(), True
+                if len(target) > len(emitted):
+                    yield {"delta": target[len(emitted) :]}
+                    emitted = target
+                if capped:
+                    break
+            if capped:
+                yield {"delta": CUT_OFF_NOTE}
+                yield _done([])
+                return
+            g = GeminiAnswer.model_validate_json(raw)
+            if not g.answerable:
+                yield {"delta": NO_EVIDENCE_ANSWER}
+                yield _done([])
+                return
+            if not emitted:
+                raise AnswerError("빈 답변")
+            yield from _finish_stream(g, emitted, ctx)
+            return
+        except Exception as e:  # noqa: BLE001 — 네트워크/쿼터/JSON 오류 전부
+            last_error = e
+            logger.warning("rag stream attempt %d failed: %r", attempt, e)
+            if emitted:  # 이미 보낸 글자는 못 거둠 — 재시도하지 않고 안내로 끝낸다
+                if on_error:
+                    on_error(e)
+                yield {"delta": CUT_OFF_NOTE}
+                yield _done([])
+                return
+    if on_error and last_error:
+        on_error(last_error)
+    yield {"error": True}

@@ -1,11 +1,23 @@
 """backend의 chat.py가 호출하는 의도분류/RAG 엔드포인트.
 
 Gemini 실패는 503으로 바꿔 backend가 대체 흐름을 쓰게 하고, 같은 실패를 Sentry에 남김(1-15, app/monitoring.py)."""
+import json
+from collections.abc import Iterator
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from ai.agent import AgentError, TurnRequest, TurnResult, turn
-from ai.answer import AnswerError, AnswerRequest, AnswerResult, answer
+from ai.answer import (
+    AnswerError,
+    AnswerRequest,
+    AnswerResult,
+    answer,
+    prepare_stream,
+    stream_answer,
+)
 from ai.db import get_session
 from ai.intent import HistoryMessage, IntentClassificationError, IntentResult, classify
 from ai.judge import JudgeError, JudgeRequest, JudgeResult, judge
@@ -72,7 +84,7 @@ def report_turn(req: TurnRequest) -> TurnResult:
 def rag_answer(req: AnswerRequest) -> AnswerResult:
     """학칙·안내·공지를 근거로 행정 문의에 답변 + 근거 목록 `sources` (1-4c).
 
-    우선 완성 답변을 한 번에 돌려주고 backend가 SSE로 전달한다(실시간 스트리밍은 3순위 1-22).
+    완성·검증된 답변을 한 번에 돌려준다. 실시간 스트리밍은 `/rag/answer/stream`(1-22)이고, 이쪽은 그 대체 경로로 유지한다.
     실패하면 503 → backend가 "잠시 후 다시 시도해주세요"로 응답.
     """
     try:
@@ -81,3 +93,33 @@ def rag_answer(req: AnswerRequest) -> AnswerResult:
     except AnswerError as e:
         report_failure("rag_answer", e)
         raise HTTPException(status_code=503, detail="답변 생성 실패") from None
+
+
+def _sse(event: dict[str, Any]) -> str:
+    return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+
+
+def _rag_events(question: str) -> Iterator[str]:
+    try:
+        with get_session() as db:  # 검색·개정 공지 조회만 DB를 쓰고, 스트리밍 중에는 연결을 잡고 있지 않음
+            ctx = prepare_stream(question, session=db)
+    except Exception as e:  # noqa: BLE001 — 검색(임베딩·DB) 실패 전부
+        report_failure("rag_answer_stream", e)
+        yield _sse({"error": True})
+        return
+    for event in stream_answer(ctx, on_error=lambda e: report_failure("rag_answer_stream", e)):
+        yield _sse(event)
+
+
+@router.post("/rag/answer/stream")
+def rag_answer_stream(req: AnswerRequest) -> StreamingResponse:
+    """`/rag/answer`와 같은 요청으로 답변을 **실시간 스트리밍**(SSE, 1-22, 명세 5-1).
+
+    `data: {"delta": "글자"}` 여러 번 → `data: {"done": true, "sources": [...]}`.
+    첫 글자 전에 실패하면 `data: {"error": true}` 한 줄 — backend가 `/rag/answer`로 대체 호출한다.
+    """
+    return StreamingResponse(
+        _rag_events(req.question),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
