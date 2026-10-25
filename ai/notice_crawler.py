@@ -26,6 +26,7 @@ from typing import Any
 
 from ai import page_scraper as ps
 from ai import rag
+from ai.privacy import redact_personal_emails
 
 API_PATH = "/wp-json/wp/v2/notice"
 KST = timezone(timedelta(hours=9))
@@ -116,13 +117,13 @@ def parse_item(item: dict[str, Any]) -> dict[str, Any]:
     date_gmt = str(item.get("date_gmt", ""))
     return {
         "id": item.get("id"),
-        "title": _title(str((item.get("title") or {}).get("rendered", ""))),
+        "title": redact_personal_emails(_title(str((item.get("title") or {}).get("rendered", "")))),
         "link": link,
         "category": category,
         "date": date_local,
         "published_at": f"{date_gmt}Z" if date_gmt and not date_gmt.endswith("Z") else date_gmt,
         "modified": str(item.get("modified", "")),
-        "body": extracted.body,
+        "body": redact_personal_emails(extracted.body),  # 개인 도메인 메일은 싣지 않는다(S-10)
         "images": extracted.images,
     }
 

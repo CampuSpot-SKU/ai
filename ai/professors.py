@@ -5,6 +5,7 @@
 
 - 퇴임교수는 "퇴임교수"라는 사실과 이름·전공만 적고 연락처(연구실·전화·이메일)는 싣지 않는다.
 - 페이지에 없는 항목은 지어내지 않는다.
+- 개인 도메인(naver·gmail 등) 메일 주소는 싣지 않고 "안내하지 않음"으로 바꾼다(S-10, `ai/privacy.py`). 학교 메일은 그대로.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 
 from ai import page_scraper as ps
+from ai.privacy import redact_personal_emails
 
 GENERIC_SECTIONS = {"", "professors", "교수진", "교수진소개", "교수진 소개"}
 RETIRED_WORDS = ("퇴임", "정년퇴직")
@@ -42,7 +44,7 @@ def _phone_dashes(text: str) -> str:
 
 
 def _normalize_line(text: str) -> str:
-    text = _phone_dashes(_clean(text))
+    text = redact_personal_emails(_phone_dashes(_clean(text)))  # 개인 도메인 메일은 싣지 않는다(S-10)
     return re.sub(r"^(?:e-?mail)\s*:?\s*", "이메일: ", text, flags=re.IGNORECASE)
 
 

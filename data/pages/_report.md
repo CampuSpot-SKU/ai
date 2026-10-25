@@ -43,7 +43,7 @@
 | minor-double-major | 부전공·복수전공 | ok | 401 | 3 | 0 | web |
 | organization-phone | 서경대학교 조직도·부서 연락처 | ok | 12546 | 0 | 0 | manual |
 | partner_institutions_abroad | 국제교류학교 | ok | 6279 | 37 | 0 | web |
-| professors | 학과 교수진 연락처 | ok | 23711 | 0 | 0 | manual |
+| professors | 학과 교수진 연락처 | ok | 23210 | 0 | 0 | manual |
 | reinstatement | 재입학 | short | 269 | 7 | 0 | web |
 | reserve-forces | 병무·예비군 | duplicate | 6235 | 49 | 6 | web |
 | return | 복학 | ok | 518 | 2 | 0 | web |

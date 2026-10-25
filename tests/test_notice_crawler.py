@@ -32,6 +32,14 @@ def test_parse_item_unescapes_title_and_converts_body() -> None:
     assert "10월 7일" in rec["body"] and rec["images"] == 1
 
 
+def test_parse_item_redacts_personal_email_but_keeps_organization_mail() -> None:
+    rec = nc.parse_item(
+        _item(8, "공모전 안내", "<p>문의: <a href=\"mailto:host@gmail.com\">host@gmail.com</a> / office@seoul.go.kr</p>")
+    )
+    assert "host@gmail.com" not in rec["body"] and "(개인 메일은 안내하지 않음)" in rec["body"]
+    assert "office@seoul.go.kr" in rec["body"]
+
+
 def test_collect_pages_and_rejects_empty() -> None:
     calls: list[str] = []
 

@@ -83,3 +83,16 @@ def test_diff() -> None:
     assert "교수 추가: 소프트웨어학과 신임교수" in out
     assert "교수 삭제: 소프트웨어학과 장웅상" in out
     assert pf.diff_data(old, old) == []
+
+
+def test_personal_domain_email_is_not_kept() -> None:
+    html = HTML.replace(
+        '<li>학부장/교수</li><li>연구실 : 대일관 212호</li>',
+        '<li>학부장/교수</li><li>연구실 : 대일관 212호</li>'
+        '<li>E-mail: <a href="mailto:jang@naver.com">jang@naver.com</a></li>',
+    )
+    profs = pf.parse_professors(html)
+    lines = profs[1]["lines"]
+    assert "이메일: (개인 메일은 안내하지 않음)" in lines
+    assert not any("naver.com" in ln for ln in lines)
+    assert "이메일: a@skuniv.ac.kr" in profs[0]["lines"]  # 학교 메일은 그대로
