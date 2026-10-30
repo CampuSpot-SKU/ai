@@ -1,4 +1,6 @@
 """신고 접수 에이전트 유닛테스트 — Gemini를 부르지 않고 검사 규칙·재시도만 확인 (CI용)."""
+import base64
+
 import pytest
 
 from ai import agent as agent_mod
@@ -393,6 +395,57 @@ def test_off_campus_place_with_fire_gets_safety_line_and_one_check() -> None:
 def test_prompt_mentions_off_campus_place_rule() -> None:
     prompt = agent_mod._system_prompt()
     assert "캠퍼스 밖의 실제 장소" in prompt and "4.19 민주묘지" in prompt
+
+
+_JPEG = base64.b64encode(b"\xff\xd8\xff\xe0" + b"0" * 32).decode("ascii")
+
+
+def _photo_req(text: str = "(사진을 보냈어요)", **kw: object) -> TurnRequest:
+    return _req(text, photo_base64=_JPEG, photo_mime="image/jpeg", candidates=[], **kw)
+
+
+def test_photo_request_is_checked_and_sent_to_gemini_as_image() -> None:
+    """사진 턴(10/30): 형식 검사 + 모델 입력에 사진 안내가 들어간다."""
+    req = _photo_req()
+    assert req.photo_bytes() is not None
+    assert "첨부 사진" in agent_mod._build_content(req) and "첨부 사진" not in agent_mod._build_content(_req())
+    with pytest.raises(AgentError):
+        _req(photo_base64=_JPEG, photo_mime="image/png").photo_bytes()  # mime과 실제 형식이 다름
+    with pytest.raises(AgentError):
+        _req(photo_base64="@@@", photo_mime="image/jpeg").photo_bytes()
+    assert _req().photo_bytes() is None
+
+
+def test_photo_only_relevant_photo_asks_for_location() -> None:
+    state = AgentState(problem="변기가 막힌 것 같아요", symptom="막혀 있어요", problem_clear=True, place="화장실 변기")
+    msg = "변기가 막힌 것 같네요. 어느 건물 몇 층 남자 화장실인지 알 수 있을까요?"
+    out = validate(_g(action="ask", message=msg, choices=[], state=state), _photo_req())
+    assert out.action == "ask" and out.state.problem_clear and out.state.symptom == "막혀 있어요"
+    assert not out.message.startswith("지금 위험하거나")  # 위험한 사진이 아니면 119 안내 없음
+
+
+def test_photo_only_irrelevant_photo_gets_dont_know_question() -> None:
+    msg = "어떤 사진인지 잘 모르겠어요. 어떤 문제가 있는지 말씀해 주시겠어요?"
+    out = validate(_g(action="ask", message=msg, choices=[], state=AgentState()), _photo_req())
+    assert out.action == "ask" and not out.state.problem_clear and "잘 모르겠어요" in out.message
+
+
+def test_photo_with_fire_gets_safety_line_even_if_student_said_nothing_dangerous() -> None:
+    state = AgentState(problem="흡연장에 불이 나고 있어요", symptom="불이 나고 있어요", problem_clear=True, place="흡연장")
+    msg = "흡연장에 불이 나고 있는 것 같네요. 가까운 건물이 어디인지 알 수 있을까요?"
+    out = validate(_g(action="ask", message=msg, choices=[], state=state), _photo_req())
+    assert out.message.startswith("지금 위험하거나 다친 분이 있으면 먼저 119나 112에 연락해 주세요.")
+    # 사진이 없으면(글에도 위험한 말이 없으면) 같은 state여도 붙이지 않음 — 학생 말 기준 규칙은 그대로
+    assert not validate(_g(action="ask", message=msg, choices=[], state=state), _req("(사진을 보냈어요)", candidates=[])).message.startswith("지금 위험")
+    # "불이 나갔어요"(전등)는 위험한 말이 아님
+    lamp = AgentState(problem="복도 불이 나갔어요", symptom="불이 나갔어요", problem_clear=True)
+    out2 = validate(_g(action="ask", message="복도 불이 나간 것 같네요. 어느 건물 몇 층인가요?", choices=[], state=lamp), _photo_req())
+    assert not out2.message.startswith("지금 위험")
+
+
+def test_prompt_has_photo_rules() -> None:
+    prompt = agent_mod._system_prompt()
+    assert "2-2." in prompt and "어떤 사진인지 잘 모르겠어요" in prompt and "변기가 막힌 것 같네요" in prompt
 
 
 def test_missing_facility_stays_when_model_forgets_after_question() -> None:
