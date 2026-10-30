@@ -371,6 +371,30 @@ def test_prompt_mentions_missing_facility_rule() -> None:
     assert "missing_facility" in prompt and "볼링장" in prompt
 
 
+def test_off_campus_place_with_fire_gets_safety_line_and_one_check() -> None:
+    """배포 사이트(10/30): "4.19 민주묘지에서 불이 났어요"를 학교 시설처럼 받으며 건물·층을 되묻고 119 안내가 없었다."""
+    state = _pool_state(
+        problem="불이 났어요", symptom="불이 났어요", building="", floor="", place="4.19 민주묘지",
+        plausible=True, missing_facility="4.19 민주묘지",
+    )
+    out = validate(_g(message="건물과 층을 알려주세요.", state=state), _req("4.19 민주묘지에서 불이 났어요", candidates=[]))
+    assert out.action == "ask" and out.message.startswith("지금 위험하거나 다친 분이 있으면 먼저 119나 112에 연락해 주세요.")
+    assert "'4.19 민주묘지'는 학교 시설 정보에서 찾지 못했어요" in out.message
+    # 그래도 그 장소면 접수하지 않고 끝낸다 (119 안내는 앞에서 한 번 했으므로 반복하지 않음)
+    conv = [
+        TurnMessage(role="user", content="4.19 민주묘지에서 불이 났어요"),
+        TurnMessage(role="assistant", content=out.message),
+        TurnMessage(role="user", content="그곳이 맞아요"),
+    ]
+    out2 = validate(_g(state=state), _req("그곳이 맞아요", candidates=[], prev_action="ask", conversation=conv))
+    assert out2.action == "decline" and "접수할 수 없어요" in out2.message and "119" not in out2.message
+
+
+def test_prompt_mentions_off_campus_place_rule() -> None:
+    prompt = agent_mod._system_prompt()
+    assert "캠퍼스 밖의 실제 장소" in prompt and "4.19 민주묘지" in prompt
+
+
 def test_missing_facility_stays_when_model_forgets_after_question() -> None:
     """배포 사이트(10/30): 확인 뒤 "그곳이 맞아요"에 모델이 칸을 비워도, 장소가 그대로면 거절한다."""
     conv = [
