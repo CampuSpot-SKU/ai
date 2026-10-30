@@ -300,3 +300,72 @@ def test_prompt_tells_agent_to_wait_when_student_says_hold_on() -> None:
 
     text = (Path(agent_mod.__file__).parent / "prompts" / "report_agent.md").read_text(encoding="utf-8")
     assert "잠시만" in text and "다시 읽어주지 말고" in text
+
+
+POOL_CONFIRM = "청운관 3층 물이 넘치는 문제로 정리했어요. 이대로 접수할까요?"
+
+
+def _pool_state(**kw: object) -> AgentState:
+    base: dict[str, object] = {
+        "problem": "수영장 물이 넘쳐요", "symptom": "물이 넘쳐요", "problem_clear": True,
+        "building": "청운관", "floor": "3", "place": "수영장", "plausible": False, "missing_facility": "수영장",
+    }
+    base.update(kw)
+    return AgentState.model_validate(base)
+
+
+def test_missing_facility_is_checked_once_then_declined() -> None:
+    """학교에 없는 시설(명세 4-1, 10/30): 1번 확인 → 그래도 그 시설이면 접수하지 않고 끝낸다."""
+    first = _req("청운관 3층 수영장 물이 넘쳐요", candidates=[])
+    out = validate(_g(state=_pool_state()), first)  # 모델이 바로 confirm해도 먼저 확인
+    assert out.action == "ask" and "'수영장'은 학교 시설 정보에서 찾지 못했어요" in out.message
+    assert out.choices == ["다른 곳이에요", "그곳이 맞아요"]
+    second = _req("네 맞아요", candidates=[], prev_action="ask", conversation=[
+        TurnMessage(role="user", content="청운관 3층 수영장 물이 넘쳐요"),
+        TurnMessage(role="assistant", content=out.message),
+        TurnMessage(role="user", content="네 맞아요"),
+    ])
+    out2 = validate(_g(state=_pool_state()), second)
+    assert out2.action == "decline" and "접수할 수 없어요" in out2.message and out2.choices == []
+
+
+def test_missing_facility_declined_even_if_student_only_gives_location() -> None:
+    """S-4에서 본 경우: 확인 뒤 위치만 답해도("본관 지하 1층이요") 접수 확인으로 넘어가지 않는다."""
+    conv = [
+        TurnMessage(role="user", content="학교 볼링장 레인이 고장났어요"),
+        TurnMessage(role="assistant", content="'볼링장'은 학교 시설 정보에서 찾지 못했어요. 혹시 다른 장소나 설비를 말씀하신 걸까요?"),
+        TurnMessage(role="user", content="본관 지하 1층이요"),
+    ]
+    state = _pool_state(problem="볼링장 레인 고장", symptom="고장났어요", building="", floor="", place="볼링장", missing_facility="볼링장")
+    out = validate(_g(state=state), _req("본관 지하 1층이요", candidates=[], prev_action="ask", conversation=conv))
+    assert out.action == "decline" and "'볼링장'은" in out.message
+
+
+def test_missing_facility_cleared_when_in_school_data_or_not_said() -> None:
+    # 학교 데이터 후보에 있는 시설이면 있는 시설 — 거절하지 않음
+    cand = [Candidate(label="수영장 (101)", building="청운관", floor="1")]
+    out = validate(_g(message=POOL_CONFIRM, state=_pool_state()), _req("청운관 3층 수영장 물이 넘쳐요", candidates=cand))
+    assert out.state.missing_facility == "" and out.action == "confirm"
+    # 학생이 말하지 않은 시설을 모델이 적었으면 지움
+    out = validate(_g(message=POOL_CONFIRM, state=_pool_state()), _req("청운관 3층 샤워실 물이 넘쳐요", candidates=[]))
+    assert out.state.missing_facility == "" and out.action == "confirm"
+
+
+def test_missing_facility_corrected_by_student_continues() -> None:
+    conv = [
+        TurnMessage(role="user", content="청운관 3층 수영장 물이 넘쳐요"),
+        TurnMessage(role="assistant", content="'수영장'은 학교 시설 정보에서 찾지 못했어요. 혹시 다른 장소나 설비를 말씀하신 걸까요?"),
+        TurnMessage(role="user", content="아 수영장 말고 샤워실이요"),
+    ]
+    state = _pool_state(place="샤워실", plausible=True, missing_facility="")
+    out = validate(_g(message=POOL_CONFIRM, state=state), _req("아 수영장 말고 샤워실이요", candidates=[], prev_action="ask", conversation=conv))
+    assert out.action == "confirm"
+
+
+def test_missing_facility_particle_follows_last_letter() -> None:
+    assert agent_mod._eun("수영장") == "은" and agent_mod._eun("스타벅스") == "는"
+
+
+def test_prompt_mentions_missing_facility_rule() -> None:
+    prompt = agent_mod._system_prompt()
+    assert "missing_facility" in prompt and "볼링장" in prompt

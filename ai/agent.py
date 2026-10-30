@@ -97,6 +97,8 @@ class AgentState(BaseModel):
     near: list[str] = Field(default_factory=list)  # 바깥·시설일 때 가까운 학교 건물 (목록의 이름)
     near_relation: NearRelation = "none"
     staff_check: list[str] = Field(default_factory=list)  # 담당자가 다시 확인해야 할 이유들
+    # 캠퍼스에 없는 종류의 시설(수영장·볼링장 등) 이름 — 학교 데이터 후보에 없을 때만. 코드가 1번 확인 뒤 접수를 거절한다
+    missing_facility: str = ""
     pending_issues: list[str] = Field(default_factory=list)  # 이번 건 다음에 이어서 접수할 별건들
 
 
@@ -306,9 +308,45 @@ def _clean_state(state: AgentState, req: TurnRequest) -> AgentState:
             "problem": state.problem.strip()[:120],
             "place": state.place.strip()[:60],
             "staff_check": [s.strip()[:60] for s in state.staff_check if s.strip()][:5],
+            "missing_facility": _clean_missing_facility(state.missing_facility, req),
             "pending_issues": [s.strip()[:80] for s in state.pending_issues if s.strip()][:5],
         }
     )
+
+
+def _clean_missing_facility(name: str, req: TurnRequest) -> str:
+    """학교에 없는 시설 이름 — 학생이 실제로 말했고 학교 데이터 후보에 없는 것만 남긴다 (데이터에 있으면 있는 시설)."""
+    name = name.strip()[:30]
+    if not name:
+        return ""
+    said = re.sub(r"\s+", "", " ".join(m.content for m in req.conversation if m.role == "user"))
+    if name.replace(" ", "") not in said:  # 학생이 말하지 않은 시설을 모델이 짐작해 적은 것
+        return ""
+    if any(name in c.label for c in req.candidates):
+        return ""
+    return name
+
+
+def _eun(word: str) -> str:
+    """'수영장' → '은', '스타벅스' → '는' (마지막 글자 받침 기준 조사)."""
+    last = word[-1] if word else ""
+    has_final = "가" <= last <= "힣" and (ord(last) - 0xAC00) % 28 != 0
+    return "은" if has_final else "는"
+
+
+MISSING_FACILITY_CHOICES = ["다른 곳이에요", "그곳이 맞아요"]
+
+
+def _missing_facility_turn(state: "AgentState", req: "TurnRequest", action: str) -> "TurnResult | None":
+    """학교에 없는 시설(명세 4-1, 10/30): 처음엔 1번 확인하고, 그 뒤에도 그 시설이면 접수하지 않고 끝낸다."""
+    name = state.missing_facility
+    if not name or action in ("cancel", "decline"):
+        return None
+    if not any(name in m.content for m in req.conversation if m.role == "assistant"):
+        text = f"'{name}'{_eun(name)} 학교 시설 정보에서 찾지 못했어요. 혹시 다른 장소나 설비를 말씀하신 걸까요? 맞는 곳을 알려주시면 이어서 접수할게요."
+        return TurnResult(action="ask", message=text, choices=MISSING_FACILITY_CHOICES, state=state)
+    text = f"'{name}'{_eun(name)} 학교 시설 정보에 없어서 접수할 수 없어요. 학교 안의 다른 곳에서 생긴 문제라면 건물과 장소를 다시 알려주세요."
+    return TurnResult(action="decline", message=text, choices=[], state=state)
 
 
 _MISSING_RE = re.compile(r"'([^']+)' 교수 연구실은 학교 데이터 어디에도 없음.*?(?:비슷한 이름: ([^\n]+?))?$")
@@ -374,6 +412,10 @@ def validate(g: GeminiTurn, req: TurnRequest) -> TurnResult:
         if _needs_safety_line(req, miss.message):
             miss = miss.model_copy(update={"message": SAFETY_PREFIX + miss.message})
         return miss
+    if (fac := _missing_facility_turn(state, req, g.action)) is not None:
+        if _needs_safety_line(req, fac.message):
+            fac = fac.model_copy(update={"message": SAFETY_PREFIX + fac.message})
+        return fac
     for name, _similar in _missing_names(req):  # 두 번 확인하고도 우기면 접수하되 담당자가 사실 확인
         note = f"학교 데이터에 없는 교수 연구실: {name} (학생이 있다고 함)"
         if name in _mine(state, message) and note not in state.staff_check:
