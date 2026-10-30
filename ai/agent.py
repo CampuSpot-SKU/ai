@@ -337,9 +337,29 @@ def _eun(word: str) -> str:
 MISSING_FACILITY_CHOICES = ["다른 곳이에요", "그곳이 맞아요"]
 
 
+_FACILITY_ASKED_RE = re.compile(r"'([^']{1,30})'[은는] 학교 시설 정보에서 찾지 못했어요")
+_CORRECTION_RE = re.compile(r"말고|아니라|아니고|잘못|다른\s*곳|다른\s*데|바꿔")
+
+
+def _sticky_missing_facility(state: "AgentState", req: "TurnRequest") -> str:
+    """직전에 없는 시설을 확인했는데 모델이 이번 턴에 이름을 비웠으면, 학생이 고쳐 말하지 않은 한 그대로 본다.
+    (배포 사이트: "청운관 1층 에스컬레이터" → 확인 → "그곳이 맞아요"에서 모델이 칸을 비워 접수로 넘어감, 10/30)"""
+    last_bot = next((m.content for m in reversed(req.conversation) if m.role == "assistant"), "")
+    found = _FACILITY_ASKED_RE.search(last_bot)
+    if not found:
+        return ""
+    name = found.group(1)
+    last_user = next((m.content for m in reversed(req.conversation) if m.role == "user"), "")
+    if _CORRECTION_RE.search(last_user):
+        return ""
+    if name not in f"{state.place} {state.room_name} {state.location_note} {state.problem}":
+        return ""  # 모델이 이해한 장소가 이미 다른 곳으로 바뀜
+    return _clean_missing_facility(name, req)
+
+
 def _missing_facility_turn(state: "AgentState", req: "TurnRequest", action: str) -> "TurnResult | None":
     """학교에 없는 시설(명세 4-1, 10/30): 처음엔 1번 확인하고, 그 뒤에도 그 시설이면 접수하지 않고 끝낸다."""
-    name = state.missing_facility
+    name = state.missing_facility or _sticky_missing_facility(state, req)
     if not name or action in ("cancel", "decline"):
         return None
     if not any(name in m.content for m in req.conversation if m.role == "assistant"):

@@ -369,3 +369,20 @@ def test_missing_facility_particle_follows_last_letter() -> None:
 def test_prompt_mentions_missing_facility_rule() -> None:
     prompt = agent_mod._system_prompt()
     assert "missing_facility" in prompt and "볼링장" in prompt
+
+
+def test_missing_facility_stays_when_model_forgets_after_question() -> None:
+    """배포 사이트(10/30): 확인 뒤 "그곳이 맞아요"에 모델이 칸을 비워도, 장소가 그대로면 거절한다."""
+    conv = [
+        TurnMessage(role="user", content="청운관 1층 에스컬레이터가 멈췄어요"),
+        TurnMessage(role="assistant", content="'에스컬레이터'는 학교 시설 정보에서 찾지 못했어요. 혹시 다른 장소나 설비를 말씀하신 걸까요?"),
+        TurnMessage(role="user", content="그곳이 맞아요"),
+    ]
+    state = _pool_state(problem="에스컬레이터가 멈췄어요", symptom="멈췄어요", floor="1", place="에스컬레이터", missing_facility="")
+    msg = "청운관 1층 에스컬레이터가 멈춘 문제로 정리했어요. 이대로 접수할까요?"
+    out = validate(_g(message=msg, state=state), _req("그곳이 맞아요", candidates=[], prev_action="ask", conversation=conv))
+    assert out.action == "decline" and "'에스컬레이터'는" in out.message
+    # 학생이 "다른 곳이에요"라고 하면 거절하지 않음
+    conv2 = [*conv[:2], TurnMessage(role="user", content="다른 곳이에요")]
+    out2 = validate(_g(message=msg, state=state), _req("다른 곳이에요", candidates=[], prev_action="ask", conversation=conv2))
+    assert out2.action != "decline"
