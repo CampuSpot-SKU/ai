@@ -463,3 +463,71 @@ def test_missing_facility_stays_when_model_forgets_after_question() -> None:
     conv2 = [*conv[:2], TurnMessage(role="user", content="다른 곳이에요")]
     out2 = validate(_g(message=msg, state=state), _req("다른 곳이에요", candidates=[], prev_action="ask", conversation=conv2))
     assert out2.action != "decline"
+
+
+# ── 1-26: 사진 기억·사진/글 불일치·무너진 벽 ─────────────────────────────────────
+def test_photo_note_kept_from_photo_turn_and_carried_to_next_turns() -> None:
+    """사진 턴에 쓴 메모는 남고, 사진이 없는 다음 턴은 모델이 지우거나 바꿔도 이전 메모를 그대로 이어받는다."""
+    state = AgentState(problem="변기가 막힌 것 같아요", symptom="막혀 있어요", problem_clear=True, place="화장실 변기",
+                       photo_note="변기가 막혀 물이 차 있어요")
+    msg = "변기가 막힌 것 같네요. 어느 건물 몇 층 남자 화장실인지 알 수 있을까요?"
+    first = validate(_g(action="ask", message=msg, choices=[], state=state), _photo_req())
+    assert first.state.photo_note == "변기가 막혀 물이 차 있어요"
+    later = validate(
+        _g(action="ask", message="몇 층인가요?", choices=[], state=state.model_copy(update={"photo_note": "지어낸 내용"})),
+        _req("청운관이요", candidates=[], state=first.state.model_dump()),
+    )
+    assert later.state.photo_note == "변기가 막혀 물이 차 있어요"
+    content = agent_mod._build_content(_req("아까 사진 봤어?", candidates=[], state=first.state.model_dump()))
+    assert "앞서 받은 사진" in content and "변기가 막혀 물이 차 있어요" in content
+
+
+def test_photo_note_never_invented_without_photo() -> None:
+    """사진을 받은 적 없는 대화에서 모델이 메모를 지어내도 비운다 ("사진 보냈잖아"에 지어내지 않기)."""
+    state = AgentState(problem="정수기 고장", photo_note="정수기가 깨져 있어요")
+    out = validate(_g(action="ask", message="이 대화에서는 사진을 받지 못했어요. 어떤 문제인지 알려주시겠어요?", choices=[], state=state),
+                   _req("사진 보냈잖아", candidates=[]))
+    assert out.state.photo_note == "" and "앞서 받은 사진" not in agent_mod._build_content(_req("사진 보냈잖아"))
+
+
+def test_photo_note_drops_building_and_room_guesses() -> None:
+    state = AgentState(photo_note="북악관 3층 301호 앞 바닥에 물이 고여 있어요")
+    out = validate(_g(action="ask", message="어느 건물인가요?", choices=[], state=state), _photo_req())
+    assert "북악관" not in out.state.photo_note and "301호" not in out.state.photo_note and "물이 고여" in out.state.photo_note
+
+
+def test_photo_text_conflict_asks_which_one_first_with_safety_line() -> None:
+    """배포 사이트(10/30): 글 '정수기가 고장났어' + 무너진 벽 사진 → 위치를 묻지 않고 어느 쪽인지 먼저 + 119 안내."""
+    state = AgentState(problem="정수기가 고장 났어요", symptom="고장 났어요", problem_clear=True, place="정수기",
+                       photo_note="벽이 크게 부서져 있어요", photo_conflict=True)
+    g = _g(action="ask", message="어느 건물 몇 층에 있는 정수기인가요?", choices=[], state=state)
+    out = validate(g, _photo_req("정수기가 고장났어"))
+    assert out.action == "ask" and out.choices == ["사진 속 문제예요", "글로 말한 문제예요"]
+    assert "벽이 크게 부서져 있어요" in out.message and "정수기가 고장났어" in out.message
+    assert out.message.startswith("지금 위험하거나 다친 분이 있으면 먼저 119나 112에 연락해 주세요.")
+
+
+def test_photo_conflict_only_on_photo_turn() -> None:
+    """불일치 질문은 사진이 온 그 턴에만 — 다음 턴엔 모델이 true로 남겨도 다시 묻지 않는다."""
+    state = AgentState(problem="벽이 부서졌어요", symptom="부서졌어요", problem_clear=True, photo_conflict=True)
+    prev = {"photo_note": "벽이 크게 부서져 있어요"}
+    out = validate(_g(action="ask", message="어느 건물 몇 층인가요?", choices=[], state=state),
+                   _req("사진 속 문제예요", candidates=[], state=prev))
+    assert out.action == "ask" and not out.state.photo_conflict and out.message == "어느 건물 몇 층인가요?"
+
+
+def test_collapsed_wall_photo_gets_safety_line_and_text_collapse_too() -> None:
+    state = AgentState(problem="벽이 무너졌어요", symptom="무너졌어요", problem_clear=True, photo_note="벽이 무너져 있어요")
+    out = validate(_g(action="ask", message="어느 건물 몇 층인가요?", choices=[], state=state), _photo_req())
+    assert out.message.startswith("지금 위험하거나")
+    chair = AgentState(problem="의자가 부서졌어요", symptom="부서졌어요", problem_clear=True, photo_note="의자 다리가 부서져 있어요")
+    out2 = validate(_g(action="ask", message="어느 건물 몇 층인가요?", choices=[], state=chair), _photo_req())
+    assert not out2.message.startswith("지금 위험")  # 의자 파손은 위급 아님
+    out3 = validate(_g(action="ask", message="어느 건물 몇 층인가요?", choices=[], state=AgentState()),
+                    _req("강의실 천장이 무너졌어요", candidates=[]))
+    assert out3.message.startswith("지금 위험하거나")
+
+
+def test_prompt_has_photo_memory_rules() -> None:
+    prompt = agent_mod._system_prompt()
+    assert "photo_note" in prompt and "photo_conflict" in prompt and "사진을 받지 못했어요" in prompt

@@ -37,6 +37,7 @@ DEFAULT_MODEL = "gemini-3.5-flash-lite"
 MAX_MESSAGE_LEN = 320
 MAX_CHOICES = 5
 MAX_CHOICE_LEN = 24
+MAX_PHOTO_NOTE = 80  # 사진에서 본 것 메모 최대 글자 수 (1-26)
 MAX_TURN_TEXT = 600  # 대화 한 메시지당 모델에 넘기는 최대 글자 수 (아주 긴 입력으로 프롬프트를 밀어내는 것 방지)
 _PROMPT_PATH = Path(__file__).parent / "prompts" / "report_agent.md"
 
@@ -123,6 +124,10 @@ class AgentState(BaseModel):
     # 캠퍼스에 없는 종류의 시설(수영장·볼링장 등) 이름 — 학교 데이터 후보에 없을 때만. 코드가 1번 확인 뒤 접수를 거절한다
     missing_facility: str = ""
     pending_issues: list[str] = Field(default_factory=list)  # 이번 건 다음에 이어서 접수할 별건들
+    # 이 신고 대화에서 학생이 보낸 사진에 분명히 보인 것 한두 문장 (사진이 없었으면 "") — 다음 턴에도 기억하려고 state로 이어받는다 (1-26)
+    photo_note: str = ""
+    # 이번 턴 사진이 학생이 글로 말한 문제와 분명히 다른 것을 보여주나 (예: 글은 정수기 고장, 사진은 무너진 벽) — 코드가 먼저 되묻는다 (1-26)
+    photo_conflict: bool = False
 
 
 class GeminiTurn(BaseModel):
@@ -176,7 +181,17 @@ def _build_content(req: TurnRequest) -> str:
             "\n## 첨부 사진\n학생이 마지막 말과 함께 사진을 한 장 보냈다(아래 이미지). "
             "학생이 사진만 보냈으면 마지막 말은 '(사진을 보냈어요)'다."
         )
+    elif note := _prev_photo_note(req):
+        lines.append(
+            "\n## 앞서 받은 사진\n학생이 이 신고 대화에서 이미 사진을 보냈다(이번 턴에는 이미지가 오지 않는다). "
+            f"그때 사진에서 본 것: {note}"
+        )
     return "\n".join(lines)
+
+
+def _prev_photo_note(req: "TurnRequest") -> str:
+    raw = (req.state or {}).get("photo_note")
+    return " ".join(raw.split())[:MAX_PHOTO_NOTE] if isinstance(raw, str) else ""
 
 
 # ── 검사 ─────────────────────────────────────────────────────────────────────
@@ -188,13 +203,16 @@ _ROOMS = ("화장실", "강의실", "연구실", "교수실", "사무실", "실�
 
 # 생명·안전이 걸린 말 — 모델이 빠뜨려도 119·112 안내가 첫 답에 반드시 들어가게 코드가 한 번 더 확인한다
 _SAFETY_RE = re.compile(
-    r"화재|불이\s*(?:났|붙)|불났|연기가\s*(?:나|자욱|가득|올라)|연기\s*나|가스\s*(?:냄새|누출|샌|새)|감전|폭발|폭파|폭탄|쓰러|의식\s*(?:이\s*)?없|(?<![가-힣])피가\s*(?:나|난|흘|철철|많)|피를\s*(?:흘|토|많)|다쳤|다친|갇혔|갇혀|끼였|추락"
+    r"화재|불이\s*(?:났|붙)|불났|연기가\s*(?:나|자욱|가득|올라)|연기\s*나|가스\s*(?:냄새|누출|샌|새)|감전|폭발|폭파|폭탄|쓰러|의식\s*(?:이\s*)?없|(?<![가-힣])피가\s*(?:나|난|흘|철철|많)|피를\s*(?:흘|토|많)|다쳤|다친|갇혔|갇혀|끼였|추락|무너(?:졌|져|지|질)|붕괴"
 )
 SAFETY_PREFIX = "지금 위험하거나 다친 분이 있으면 먼저 119나 112에 연락해 주세요. "
 
 
 # 사진만 보냈을 때: 학생 말에는 위험한 말이 없고 에이전트가 사진에서 읽은 문제(state)에만 있다 ("흡연장에 불이 나고 있어요")
-_PHOTO_SAFETY_RE = re.compile(r"불이\s*나(?![가갔간])|불길|화염|불타|타고\s*있|연기")
+_PHOTO_SAFETY_RE = re.compile(
+    r"불이\s*나(?![가갔간])|불길|화염|불타|타고\s*있|연기|무너|붕괴|천장이\s*(?:내려|떨어|주저)"
+    r"|(?:벽|천장|건물|기둥|외벽)[이가은는]?\s*(?:크게\s*)?(?:부서|파손|뚫|갈라|내려앉)"
+)
 
 
 def _needs_safety_line(req: TurnRequest, message: str, state: "AgentState | None" = None) -> bool:
@@ -204,7 +222,10 @@ def _needs_safety_line(req: TurnRequest, message: str, state: "AgentState | None
         return False
     if any(_SAFETY_RE.search(m.content) for m in req.conversation if m.role == "user"):
         return True
-    return bool(req.photo_base64 and state is not None and _PHOTO_SAFETY_RE.search(f"{state.problem} {state.symptom}"))
+    return bool(
+        req.photo_base64 and state is not None
+        and _PHOTO_SAFETY_RE.search(f"{state.problem} {state.symptom} {state.photo_note}")
+    )
 
 
 # 학생이 챗봇에게 우선순위·담당 부서·지시 무시를 요구하는 말 — 따르지 않는다는 한 문장을 코드가 보장한다
@@ -344,8 +365,22 @@ def _clean_state(state: AgentState, req: TurnRequest) -> AgentState:
             "staff_check": [s.strip()[:60] for s in state.staff_check if s.strip()][:5],
             "missing_facility": _clean_missing_facility(state.missing_facility, req),
             "pending_issues": [s.strip()[:80] for s in state.pending_issues if s.strip()][:5],
+            "photo_note": (note_clean := _clean_photo_note(state.photo_note, req)),
+            "photo_conflict": bool(req.photo_base64) and state.photo_conflict and bool(note_clean),
         }
     )
+
+
+def _clean_photo_note(note: str, req: TurnRequest) -> str:
+    """사진 메모는 사진이 온 턴에만 새로 쓴다. 사진이 없는 턴은 이전 state의 메모를 그대로 이어받는다
+    (모델이 지우거나 지어내도 무시 — "사진 보냈잖아"에 지어내지 않기, 1-26). 건물·층·호수 표현은 사진으로 단정하지 않으므로 뺀다."""
+    if not req.photo_base64:
+        return _prev_photo_note(req)
+    note = " ".join(note.split()).strip('"').strip()
+    note = " ".join(_FACT_RE.sub("", note).split())
+    if any(m in note for m in _BANNED_MARKS):
+        return ""
+    return note[:MAX_PHOTO_NOTE]
 
 
 def _clean_missing_facility(name: str, req: TurnRequest) -> str:
@@ -401,6 +436,25 @@ def _missing_facility_turn(state: "AgentState", req: "TurnRequest", action: str)
         return TurnResult(action="ask", message=text, choices=MISSING_FACILITY_CHOICES, state=state)
     text = f"'{name}'{_eun(name)} 학교 시설 정보에 없어서 접수할 수 없어요. 학교 안의 다른 곳에서 생긴 문제라면 건물과 장소를 다시 알려주세요."
     return TurnResult(action="decline", message=text, choices=[], state=state)
+
+
+PHOTO_CONFLICT_CHOICES = ["사진 속 문제예요", "글로 말한 문제예요"]
+
+
+def _photo_conflict_turn(state: "AgentState", req: "TurnRequest", action: str) -> "TurnResult | None":
+    """사진과 글이 분명히 다른 문제를 가리키면 (글: 정수기 고장, 사진: 무너진 벽) 위치를 묻기 전에 어느 쪽인지 먼저 묻는다.
+    모델이 사진을 보고도 글만 따라 위치를 묻던 문제 (배포 사이트 10/30, 작업 1-26)."""
+    if not state.photo_conflict or action in ("cancel", "decline"):
+        return None
+    last_user = next((m.content for m in reversed(req.conversation) if m.role == "user"), "")
+    said = " ".join(last_user.split())
+    if len(said) > 30:
+        said = said[:30] + "…"
+    seen = state.photo_note.rstrip(" .")
+    text = f"사진에는 '{seen}' 모습이 보이는데, 글로 말씀하신 내용('{said}')과 달라 보여요. 어느 쪽을 신고하실 건가요?"
+    if len(text) > MAX_MESSAGE_LEN:
+        text = f"사진과 글로 말씀하신 내용('{said}')이 달라 보여요. 어느 쪽을 신고하실 건가요?"
+    return TurnResult(action="ask", message=text, choices=PHOTO_CONFLICT_CHOICES, state=state)
 
 
 _MISSING_RE = re.compile(r"'([^']+)' 교수 연구실은 학교 데이터 어디에도 없음.*?(?:비슷한 이름: ([^\n]+?))?$")
@@ -474,6 +528,10 @@ def validate(g: GeminiTurn, req: TurnRequest) -> TurnResult:
         note = f"학교 데이터에 없는 교수 연구실: {name} (학생이 있다고 함)"
         if name in _mine(state, message) and note not in state.staff_check:
             state = state.model_copy(update={"staff_check": [*state.staff_check, note][:5], "location_certainty": "uncertain"})
+    if (conflict := _photo_conflict_turn(state, req, g.action)) is not None:
+        if _needs_safety_line(req, conflict.message, state):
+            conflict = conflict.model_copy(update={"message": SAFETY_PREFIX + conflict.message})
+        return conflict
     if g.action == "ask" and _is_instruction(req) and not state.symptom and not state.problem_clear:
         # 신고 내용 없이 봇에게 지시만 한 경우 — 되묻지 않고 정중히 거절
         return TurnResult(action="decline", message=INSTRUCTION_NOTE + "고장이나 불편한 점이 있다면 알려주세요.", choices=[], state=state)
