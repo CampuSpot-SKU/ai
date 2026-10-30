@@ -22,10 +22,10 @@ import re
 import threading
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from google.genai import Client, types
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, create_model
 
 from ai.intent import _client
 from ai.judge import _JPEG_MAGIC, _PNG_MAGIC, MAX_PHOTO_BYTES
@@ -124,10 +124,27 @@ class AgentState(BaseModel):
     # 캠퍼스에 없는 종류의 시설(수영장·볼링장 등) 이름 — 학교 데이터 후보에 없을 때만. 코드가 1번 확인 뒤 접수를 거절한다
     missing_facility: str = ""
     pending_issues: list[str] = Field(default_factory=list)  # 이번 건 다음에 이어서 접수할 별건들
+
+
     # 이 신고 대화에서 학생이 보낸 사진에 분명히 보인 것 한두 문장 (사진이 없었으면 "") — 다음 턴에도 기억하려고 state로 이어받는다 (1-26)
     photo_note: str = ""
     # 이번 턴 사진이 학생이 글로 말한 문제와 분명히 다른 것을 보여주나 (예: 글은 정수기 고장, 사진은 무너진 벽) — 코드가 먼저 되묻는다 (1-26)
     photo_conflict: bool = False
+
+
+_PHOTO_FIELDS = ("photo_note", "photo_conflict")
+if TYPE_CHECKING:
+    StateBase = AgentState
+else:
+    # 사진 칸은 사진이 온 턴에만 Gemini 출력 형식에 넣는다 (1-26) — 모든 턴에 넣었더니 사진과 무관한 대화의 답이
+    # 흔들렸다 (Agent eval 12·H2·H7·H25, 10/30). 클래스 이름·docstring도 출력 형식에 실려 답을 바꾸므로,
+    # 사진 없는 턴의 형식은 1-26 이전과 글자까지 같게 (이름 AgentState, 같은 docstring) 만든다.
+    # 사진이 없는 턴의 사진 메모는 코드가 이전 state에서 이어 붙인다 (_clean_photo_note).
+    StateBase = create_model(
+        "AgentState",
+        __doc__=AgentState.__doc__,
+        **{k: (f.annotation, f) for k, f in AgentState.model_fields.items() if k not in _PHOTO_FIELDS},
+    )
 
 
 class GeminiTurn(BaseModel):
@@ -136,6 +153,12 @@ class GeminiTurn(BaseModel):
     action: Action
     message: str
     choices: list[str]
+    state: StateBase
+
+
+class GeminiPhotoTurn(GeminiTurn):
+    """사진이 온 턴의 출력 형식 — state에 사진 칸(photo_note·photo_conflict)이 더 있다."""
+
     state: AgentState
 
 
@@ -502,7 +525,7 @@ def _missing_name_turn(state: "AgentState", req: "TurnRequest", action: str, mes
 
 def validate(g: GeminiTurn, req: TurnRequest) -> TurnResult:
     """Gemini 결과 검사 — 통과하면 TurnResult, 아니면 AgentError."""
-    state = _clean_state(g.state, req)
+    state = _clean_state(g.state if isinstance(g.state, AgentState) else AgentState(**g.state.model_dump()), req)
     message = " ".join(g.message.split()).strip('"').strip()
     choices = [c.strip() for c in g.choices if c.strip()]
     choices = [c for c in choices if len(c) <= MAX_CHOICE_LEN][:MAX_CHOICES]  # 길거나 많은 선택지는 버림 (말은 그대로 쓸 수 있음)
@@ -594,6 +617,7 @@ def _shared_client() -> Client:
 
 
 def _call_gemini(req: TurnRequest, temperature: float = 0.0) -> GeminiTurn:
+    schema: type[GeminiTurn] = GeminiPhotoTurn if req.photo_base64 else GeminiTurn
     parts = [types.Part.from_text(text=_build_content(req))]
     if (data := req.photo_bytes()) is not None and req.photo_mime:
         parts.append(types.Part.from_bytes(data=data, mime_type=req.photo_mime))
@@ -603,11 +627,11 @@ def _call_gemini(req: TurnRequest, temperature: float = 0.0) -> GeminiTurn:
         config=types.GenerateContentConfig(
             system_instruction=_system_prompt(),
             response_mime_type="application/json",
-            response_schema=GeminiTurn,
+            response_schema=schema,
             temperature=temperature,
         ),
     )
-    return GeminiTurn.model_validate_json(response.text or "")
+    return schema.model_validate_json(response.text or "")
 
 
 def turn(req: TurnRequest) -> TurnResult:

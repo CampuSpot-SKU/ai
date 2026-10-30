@@ -1,5 +1,6 @@
 """신고 접수 에이전트 유닛테스트 — Gemini를 부르지 않고 검사 규칙·재시도만 확인 (CI용)."""
 import base64
+import json
 
 import pytest
 
@@ -40,7 +41,8 @@ def _g(**kw: object) -> GeminiTurn:
         "state": AgentState(problem="불이 안 켜져요", problem_clear=True, building="북악관", floor="6"),
     }
     base.update(kw)
-    return GeminiTurn.model_validate(base)
+    # 사진 칸까지 있는 형식으로 만든다 (사진 없는 턴 형식 GeminiTurn은 사진 칸이 없음 — 1-26)
+    return agent_mod.GeminiPhotoTurn.model_validate(base)
 
 
 def test_validate_passes() -> None:
@@ -531,3 +533,15 @@ def test_collapsed_wall_photo_gets_safety_line_and_text_collapse_too() -> None:
 def test_prompt_has_photo_memory_rules() -> None:
     prompt = agent_mod._system_prompt()
     assert "photo_note" in prompt and "photo_conflict" in prompt and "사진을 받지 못했어요" in prompt
+
+
+def test_photo_fields_only_in_photo_turn_schema() -> None:
+    """사진 칸은 사진 턴 출력 형식에만 — 사진 없는 대화의 답이 흔들리지 않게 (Agent eval 회귀, 10/30)."""
+    assert "photo_note" not in json.dumps(agent_mod.GeminiTurn.model_json_schema())
+    assert "photo_note" in json.dumps(agent_mod.GeminiPhotoTurn.model_json_schema())
+    # 사진 없는 턴 형식(StateBase)으로 와도 검사·사진 메모 이어받기가 동작
+    plain = agent_mod.GeminiTurn.model_validate(
+        {"action": "ask", "message": "몇 층인가요?", "choices": [], "state": {"problem": "벽이 부서졌어요"}}
+    )
+    out = validate(plain, _req("청운관이요", candidates=[], state={"photo_note": "벽이 크게 부서져 있어요"}))
+    assert out.state.photo_note == "벽이 크게 부서져 있어요" and not out.state.photo_conflict
