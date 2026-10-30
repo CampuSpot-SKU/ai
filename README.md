@@ -46,7 +46,6 @@ ai/                실제 AI 로직
   intent.py        의도 분류
   agent.py         신고 대화 에이전트(사진 포함)
   judge.py         카테고리·긴급도 판정
-  priority.py      우선순위 산정
   rag.py, answer.py  검색(벡터 + 조항 번호) 및 답변 생성
   regulations.py   학칙·규정집 조항 처리
   detection.py     반복 패턴 탐지
