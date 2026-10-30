@@ -1,5 +1,5 @@
 {
-  "_comment": "홈페이지 안내 페이지 수집 대상(1-4a). tier 1=학사안내 메뉴·FAQ 먼저, 2=대학생활·시설. 사이트맵에 더 있는 주소는 `--discover`로 찾아서 여기 추가. 외부 도메인은 robots 미확인이라 수집하지 않음. (대문·별칭 주소 — scholarships·courses-grades·student-records·student-exchange·faq·certificate·accademic-affairs·academics — 는 다른 페이지와 같은 내용이거나 메뉴뿐이라 뺌) 전체 자료실(resources)은 글 목록 게시판이라 안내 페이지가 아니라 공지처럼 REST로 수집(1-14). campus-map·campus-map-2·job-board는 지도 위젯·채용 게시판이라 뺌(건물 정보는 team-docs data/campus에 있음).",
+  "_comment": "홈페이지 안내 페이지 수집 대상(1-4a). tier 1=학사안내 메뉴·FAQ 먼저, 2=대학생활·시설. 사이트맵에 더 있는 주소는 `--discover`로 찾아서 여기 추가. 외부 도메인은 robots 미확인이라 수집하지 않음. (대문·별칭 주소 — scholarships·courses-grades·student-records·student-exchange·faq·certificate·accademic-affairs·academics — 는 다른 페이지와 같은 내용이거나 메뉴뿐이라 뺌) 전체 자료실(resources)은 글 목록 게시판이라 안내 페이지가 아니라 공지처럼 REST로 수집(1-14). campus-map·campus-map-2·job-board는 지도 위젯·채용 게시판이라 뺌(건물 정보는 캠퍼스 건물 데이터에 있음).",
   "base_url": "https://www.skuniv.ac.kr",
   "pages": [
     {
