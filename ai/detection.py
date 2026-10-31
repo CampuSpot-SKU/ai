@@ -101,6 +101,8 @@ class DetectionResult:
     links_added: int = 0
     building_wide_created: int = 0  # 건물 전체 원인으로 새로 만든 후보 수 (detection_scope.py)
     building_wide_calls: int = 0
+    building_wide_errors: int = 0  # 그중 Gemini 호출이 실패한 횟수
+    building_wide_notes: list[str] = field(default_factory=list)  # 묶음마다 AI 판단 한 줄
     reports_embedded: int = 0
     embedding_pending: int = 0  # dry_run일 때 채우지 않고 남겨 둔 신고 수
     embedding_error: bool = False
@@ -118,6 +120,8 @@ class DetectionResult:
             "links_added": self.links_added,
             "building_wide_created": self.building_wide_created,
             "building_wide_calls": self.building_wide_calls,
+            "building_wide_errors": self.building_wide_errors,
+            "building_wide_notes": self.building_wide_notes,
             "reports_embedded": self.reports_embedded,
             "embedding_pending": self.embedding_pending,
             "embedding_error": self.embedding_error,
@@ -560,6 +564,8 @@ def run_detection(db: Any, dry_run: bool = False, explain: bool = False) -> Dete
         + sum(len(ids) for _, ids in plan.additions),
         building_wide_created=len(whole.new_clusters),
         building_wide_calls=whole.calls,
+        building_wide_errors=whole.errors,
+        building_wide_notes=whole.notes,
         reports_embedded=embedded,
         embedding_pending=pending,
         embedding_error=embed_error,

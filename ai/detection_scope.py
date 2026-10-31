@@ -56,6 +56,8 @@ class BuildingWidePlan:
     additions: list[tuple[str, list[str]]] = field(default_factory=list)  # (cluster_id, 신고 id들)
     calls: int = 0
     reasons: list[str] = field(default_factory=list)
+    errors: int = 0  # Gemini 호출이 실패한 횟수
+    notes: list[str] = field(default_factory=list)  # 묶음마다 AI 판단 한 줄 (운영 확인용)
 
     def consumed_ids(self) -> set[str]:
         ids: set[str] = set()
@@ -110,7 +112,14 @@ def find_building_wide(
                 verdict = judge(names.get(building_id, "이 건물"), names.get(category_id, ""), shown)
             except Exception:  # Gemini·네트워크 오류 전부: 이 묶음만 건너뛴다
                 logger.exception("건물 전체 판단 실패 — 건너뜀")
+                plan.errors += 1
+                plan.notes.append(f"{names.get(building_id, '?')}/{names.get(category_id, '?')}: 호출 실패")
                 continue
+            plan.notes.append(
+                f"{names.get(building_id, '?')}/{names.get(category_id, '?')} "
+                f"{'건물 전체' if verdict.building_wide else '개별'}({len(shown)}건): "
+                + " ".join(verdict.reason.split())[:MAX_REASON_LEN]
+            )
             picked = sorted({n for n in verdict.report_numbers if 1 <= n <= len(shown)})
             ids = [shown[n - 1].id for n in picked]
             chosen = [shown[n - 1] for n in picked]
