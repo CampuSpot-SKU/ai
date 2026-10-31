@@ -272,6 +272,7 @@ def test_embedding_count_mismatch_is_treated_as_failure() -> None:
 
 
 def _patch_db_layer(monkeypatch: pytest.MonkeyPatch, calls: list[str]) -> None:
+    monkeypatch.setenv("DETECTION_SCOPE_AI", "0")  # 건물 전체 판단(Gemini)은 여기서 끈다
     monkeypatch.setattr(detection, "load_thresholds", lambda db: (3, 72))
     monkeypatch.setattr(detection, "load_points", lambda db: _three_leaks())
     monkeypatch.setattr(detection, "load_existing", lambda db: [])

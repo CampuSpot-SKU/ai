@@ -47,6 +47,8 @@ EMBED_LIMIT = 200  # 배치 한 번에 임베딩을 채울 신고 수 상한
 EMBED_TASK = "SEMANTIC_SIMILARITY"
 
 STATUS_CANDIDATE = "후보"
+# 건물 전체 원인으로 묶은 후보의 세부위치 (detection_scope.py) — 호실이 달라도 같은 건으로 본 묶음
+WHOLE_BUILDING = "건물 전체"
 
 # (건물 id, 세부위치, 카테고리 id) — 모두 문자열
 GroupKey = tuple[str, str, str]
@@ -62,6 +64,7 @@ class ReportPoint:
     category_id: str
     created_at: datetime
     embedding: tuple[float, ...] | None = None  # 아직 없으면 None — 표기가 같은 신고끼리만 묶임
+    description: str = ""  # 건물 전체 판단(detection_scope.py)에서만 쓴다
 
     @property
     def key(self) -> GroupKey:
@@ -96,6 +99,8 @@ class DetectionResult:
     clusters_created: int = 0
     clusters_extended: int = 0
     links_added: int = 0
+    building_wide_created: int = 0  # 건물 전체 원인으로 새로 만든 후보 수 (detection_scope.py)
+    building_wide_calls: int = 0
     reports_embedded: int = 0
     embedding_pending: int = 0  # dry_run일 때 채우지 않고 남겨 둔 신고 수
     embedding_error: bool = False
@@ -111,6 +116,8 @@ class DetectionResult:
             "clusters_created": self.clusters_created,
             "clusters_extended": self.clusters_extended,
             "links_added": self.links_added,
+            "building_wide_created": self.building_wide_created,
+            "building_wide_calls": self.building_wide_calls,
             "reports_embedded": self.reports_embedded,
             "embedding_pending": self.embedding_pending,
             "embedding_error": self.embedding_error,
@@ -306,6 +313,8 @@ def plan_detection(
 
     clusters_by_place: dict[tuple[str, str], list[ExistingCluster]] = defaultdict(list)
     for c in existing:
+        if c.key[1] == WHOLE_BUILDING:
+            continue  # 건물 전체 묶음은 detection_scope.py가 따로 다룬다
         clusters_by_place[(c.key[0], c.key[2])].append(c)
 
     plan = DetectionPlan(groups=len(groups))
@@ -367,14 +376,14 @@ def load_points(db: Any) -> list[ReportPoint]:
 
     rows = db.execute(
         text(
-            "SELECT id, building_id, btrim(detail), category_id, created_at, CAST(embedding AS text) "
-            "FROM reports "
+            "SELECT id, building_id, btrim(detail), category_id, created_at, CAST(embedding AS text), "
+            "description FROM reports "
             "WHERE building_id IS NOT NULL AND detail IS NOT NULL AND btrim(detail) <> '' "
             "ORDER BY created_at, id"
         )
     ).all()
     return [
-        ReportPoint(str(r[0]), str(r[1]), str(r[2]), str(r[3]), r[4], parse_vector(r[5]))
+        ReportPoint(str(r[0]), str(r[1]), str(r[2]), str(r[3]), r[4], parse_vector(r[5]), str(r[6] or ""))
         for r in rows
     ]
 
@@ -390,6 +399,17 @@ def parse_vector(raw: Any) -> tuple[float, ...] | None:
 def format_vector(values: Sequence[float]) -> str:
     """숫자 목록 → pgvector 글자 표현 `[0.1,0.2,...]` (CAST(:v AS vector)에 넣는다)."""
     return "[" + ",".join(repr(float(v)) for v in values) + "]"
+
+
+def load_names(db: Any) -> dict[str, str]:
+    """건물·카테고리 id → 이름 (건물 전체 판단 프롬프트에 쓴다)."""
+    from sqlalchemy import text
+
+    names: dict[str, str] = {}
+    for table in ("buildings", "categories"):
+        for rid, name in db.execute(text(f"SELECT id, name FROM {table}")).all():  # 고정 문자열
+            names[str(rid)] = str(name)
+    return names
 
 
 def load_existing(db: Any) -> list[ExistingCluster]:
@@ -504,9 +524,32 @@ def run_detection(db: Any, dry_run: bool = False, explain: bool = False) -> Dete
         else:
             embedded, embed_error = embed_missing_reports(db)
     points = load_points(db)
+    existing = load_existing(db)
+
+    # 건물 전체 원인(정전·건물 전체 네트워크 장애 등)은 AI가 먼저 가려내고, 거기 들어간 신고는 기존 탐지에서 뺀다.
+    # 실패해도 기존 탐지는 그대로 동작한다 (접수 경로와 무관한 배치).
+    from ai import detection_scope
+
+    whole = detection_scope.BuildingWidePlan()
+    if detection_scope.scope_enabled() and not dry_run:
+        try:
+            whole = detection_scope.find_building_wide(
+                points, existing, count, hours, detection_scope.gemini_scope_judge, load_names(db)
+            )
+        except Exception:
+            logger.exception("건물 전체 탐지 실패 — 기존 탐지만 진행합니다")
+            whole = detection_scope.BuildingWidePlan()
+    in_whole = {rid for c in existing if c.key[1] == WHOLE_BUILDING for rid in c.report_ids}
+    in_whole |= whole.consumed_ids()
     plan = plan_detection(
-        points, load_existing(db), count, hours, max_distance if use_embedding else None
+        [p for p in points if p.id not in in_whole],
+        existing,
+        count,
+        hours,
+        max_distance if use_embedding else None,
     )
+    plan.new_clusters = whole.new_clusters + plan.new_clusters
+    plan.additions = whole.additions + plan.additions
     result = DetectionResult(
         reports_scanned=len(points),
         groups=plan.groups,
@@ -515,6 +558,8 @@ def run_detection(db: Any, dry_run: bool = False, explain: bool = False) -> Dete
         clusters_extended=len(plan.additions),
         links_added=sum(len(ids) for _, ids in plan.new_clusters)
         + sum(len(ids) for _, ids in plan.additions),
+        building_wide_created=len(whole.new_clusters),
+        building_wide_calls=whole.calls,
         reports_embedded=embedded,
         embedding_pending=pending,
         embedding_error=embed_error,
